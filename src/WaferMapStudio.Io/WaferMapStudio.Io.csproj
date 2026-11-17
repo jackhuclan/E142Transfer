@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>WaferMapStudio.Io</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    本层是"通用 IO 控制能力"的纯契约层：强类型点位、点表映射、控制器、模拟器。
+    刻意不引用任何厂商 SDK / 协议库（见 AGENTS.md §2 依赖方向）：
+    - 真机适配器通过 IIoTransport 注入，放进程外桥接或独立主站实现；
+    - 点表用 System.Text.Json（.NET 内置）解析，无额外包依赖；
+    - 保持 net10.0 跨平台，便于无硬件单测。
+  -->
+
+</Project>

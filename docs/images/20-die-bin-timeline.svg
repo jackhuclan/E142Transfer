@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 140" width="100%" role="img">
+<title>同一颗 die 的多条 bin 记录</title>
+<desc>die 的坐标身份从头到尾不变，而 bin 随测试轮次变化：首测给出 soft bin，复测重新判定，最终以 hard bin 决定处置。</desc>
+<style>
+.t{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;font-size:14px;font-weight:400;fill:#2C2C2A}
+.ts{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;font-size:12px;font-weight:400;fill:#5F5E5A}
+.th{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;font-size:14px;font-weight:500;fill:#2C2C2A}
+.c-blue rect{fill:#E6F1FB;stroke:#185FA5}
+.c-teal rect{fill:#E1F5EE;stroke:#0F6E56}
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<path d="M 60 40 H 620" fill="none" stroke="#D3D1C7" stroke-width="0.5" stroke-dasharray="4 4"/>
+<text class="ts" x="340" y="24" text-anchor="middle" dominant-baseline="central">die 身份不变：同一坐标、同一 Wafer / Lot</text>
+<g class="c-blue" stroke-width="0.5">
+<rect x="60" y="56" width="150" height="56" rx="8"/>
+<rect x="265" y="56" width="150" height="56" rx="8"/>
+</g>
+<g class="c-teal" stroke-width="0.5">
+<rect x="470" y="56" width="150" height="56" rx="8"/>
+</g>
+<text class="th" x="135" y="76" text-anchor="middle" dominant-baseline="central">首测</text>
+<text class="ts" x="135" y="96" text-anchor="middle" dominant-baseline="central">soft bin 7（细分模式）</text>
+<text class="th" x="340" y="76" text-anchor="middle" dominant-baseline="central">复测</text>
+<text class="ts" x="340" y="96" text-anchor="middle" dominant-baseline="central">同一 die 再测一次</text>
+<text class="th" x="545" y="76" text-anchor="middle" dominant-baseline="central">最终 bin</text>
+<text class="ts" x="545" y="96" text-anchor="middle" dominant-baseline="central">hard bin 3（处置依据）</text>
+<path d="M 212 84 H 257" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 417 84 H 462" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>

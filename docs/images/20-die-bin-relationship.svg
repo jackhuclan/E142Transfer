@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 260" width="100%" role="img">
+<title>die 与 bin：格位是身份，格上的值是判定</title>
+<desc>左侧是晶圆的 die 阵列，每格代表一颗 die，格子颜色代表该 die 的 bin 判定。右侧是其中一格在 map 文件中的记录：die 的身份字段（Wafer/Lot/坐标/尺寸）与 bin 的判定值（bin 码与质量）。</desc>
+<style>
+.t{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;font-size:14px;font-weight:400;fill:#2C2C2A}
+.ts{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;font-size:12px;font-weight:400;fill:#5F5E5A}
+.th{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;font-size:14px;font-weight:500;fill:#2C2C2A}
+.box{fill:#F1EFE8;stroke:#B4B2A9}
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<g stroke-width="0.5">
+<rect x="40" y="60" width="36" height="36" rx="4" fill="#C0DD97" stroke="#639922"/>
+<rect x="82" y="60" width="36" height="36" rx="4" fill="#C0DD97" stroke="#639922"/>
+<rect x="124" y="60" width="36" height="36" rx="4" fill="#97C459" stroke="#639922"/>
+<rect x="166" y="60" width="36" height="36" rx="4" fill="none" stroke="#D3D1C7"/>
+<rect x="208" y="60" width="36" height="36" rx="4" fill="none" stroke="#D3D1C7"/>
+<rect x="40" y="102" width="36" height="36" rx="4" fill="#C0DD97" stroke="#639922"/>
+<rect x="82" y="102" width="36" height="36" rx="4" fill="#97C459" stroke="#639922"/>
+<rect x="124" y="102" width="36" height="36" rx="4" fill="#C0DD97" stroke="#639922"/>
+<rect x="166" y="102" width="36" height="36" rx="4" fill="none" stroke="#D3D1C7"/>
+<rect x="208" y="102" width="36" height="36" rx="4" fill="none" stroke="#D3D1C7"/>
+<rect x="40" y="144" width="36" height="36" rx="4" fill="#C0DD97" stroke="#639922"/>
+<rect x="82" y="144" width="36" height="36" rx="4" fill="#C0DD97" stroke="#639922"/>
+<rect x="124" y="144" width="36" height="36" rx="4" fill="#F09595" stroke="#A32D2D"/>
+<rect x="166" y="144" width="36" height="36" rx="4" fill="#C0DD97" stroke="#639922"/>
+<rect x="208" y="144" width="36" height="36" rx="4" fill="#97C459" stroke="#639922"/>
+<rect x="40" y="186" width="36" height="36" rx="4" fill="none" stroke="#D3D1C7"/>
+<rect x="82" y="186" width="36" height="36" rx="4" fill="#C0DD97" stroke="#639922"/>
+<rect x="124" y="186" width="36" height="36" rx="4" fill="#C0DD97" stroke="#639922"/>
+<rect x="166" y="186" width="36" height="36" rx="4" fill="#97C459" stroke="#639922"/>
+<rect x="208" y="186" width="36" height="36" rx="4" fill="#C0DD97" stroke="#639922"/>
+</g>
+<rect x="204" y="140" width="44" height="44" rx="7" fill="none" stroke="#2C2C2A" stroke-width="1"/>
+<path d="M 252 162 H 292" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text class="ts" x="40" y="240" dominant-baseline="central">一片晶圆 = die 阵列，格上颜色 = bin</text>
+<rect class="box" x="300" y="60" width="340" height="162" rx="12" stroke-width="0.5"/>
+<text class="th" x="320" y="80" dominant-baseline="central">同一条记录（这一格）</text>
+<line x1="320" y1="94" x2="620" y2="94" stroke="#D3D1C7" stroke-width="0.5"/>
+<text class="ts" x="320" y="118" dominant-baseline="central">die</text>
+<text class="t" x="356" y="118" dominant-baseline="central">W01 · L9 · Col 4 · Row 2</text>
+<text class="ts" x="356" y="142" dominant-baseline="central">3.6 × 1.58 mm · (0.36, 0.79) mm</text>
+<line x1="320" y1="156" x2="620" y2="156" stroke="#D3D1C7" stroke-width="0.5"/>
+<text class="ts" x="320" y="186" dominant-baseline="central">bin</text>
+<rect x="356" y="174" width="44" height="24" rx="12" fill="#97C459" stroke="#639922" stroke-width="0.5"/>
+<text class="th" x="378" y="186" text-anchor="middle" dominant-baseline="central" fill="#173404">7</text>
+<text class="ts" x="412" y="186" dominant-baseline="central">FAIL · 质量与处置</text>
+</svg>
