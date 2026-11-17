@@ -29,7 +29,10 @@ foreach (var path in paths)
                           $"Axis={m.Layout.AxisDirection}, Orient={m.Layout.Orientation}");
         Console.WriteLine($"Wafer={m.SubstrateId} Lot={m.LotId} Device={m.DeviceId} SLOT={m.Metadata.GetValueOrDefault("SLOT")}");
         Console.WriteLine($"参考die={m.ReferenceDie} DUTMS={m.Metadata.GetValueOrDefault("DUTMS")}");
-        Console.WriteLine($"die总数={m.Dies.Count} GoodDies={m.GoodDies.Count()}");
+        Console.WriteLine($"die尺寸={m.DieSizeX:0.##}x{m.DieSizeY:0.##}µm die总数={m.Dies.Count} GoodDies={m.GoodDies.Count()}");
+        if (m.Metadata.Count > 0)
+            Console.WriteLine("元数据: " + string.Join(", ",
+                m.Metadata.OrderBy(kv => kv.Key).Select(kv => $"{kv.Key}={kv.Value}")));
         Console.WriteLine("Bin 分布:");
         foreach (var kv in m.ClassCounts().OrderBy(k => k.Key))
             Console.WriteLine($"  {kv.Key,-10}: {kv.Value}");

@@ -10,7 +10,7 @@
 **解析库（src/E142Transfer）**
 - 多格式 Reader（自动识别 + 置信度打分）：SEMI E142（含 TransferMap 追溯段）、
   SEMI G85-1101（Amkor/Camtek OQA）、SINF（hex bin / BCEQU / 3-Digit / 1-based 修正）、
-  CSV/XYBin；
+  TSK 探针台二进制 DAT（含配对 .XTR bin 表）、CSV/XYBin；
 - 中性模型 `NeutralWaferMap`（die 阵列 + BinCode 定义表 + Transfer + 解析告警）；
 - E142 TransferMap 解析/生成、坐标归一化、3D 堆叠反查；
 - CSV 写出适配器与导入门面 `WaferMapImporter`。
@@ -27,7 +27,7 @@
 ```bash
 dotnet build E142Transfer.slnx -c Release          # 0 警告 0 错误
 dotnet test E142Transfer.slnx                       # xunit（Core/ViewModel，15 项）
-dotnet run --project tests/E142Transfer.SelfTest    # 解析库自检（55 项 OK）
+dotnet run --project tests/E142Transfer.SelfTest    # 解析库自检（79 项 OK）
 dotnet run --project src/WaferMapStudio.App         # 启动查看器
 dotnet run --project tools/E142Transfer.RealSampleCheck -- <wafer-map 文件路径>
 ```
@@ -42,7 +42,7 @@ src/WaferMapStudio.Core/          视觉契约 + 映射器 + BinCode 调色板
 src/WaferMapStudio.ViewModel/     浏览器/文档 VM、IFileDialogService 接口
 src/WaferMapStudio.Rendering/     WaferMapView 可复用控件
 src/WaferMapStudio.App/           WPF 主程序、Host+DI、深色主题
-tests/E142Transfer.SelfTest/      解析库自检程序（55 项）
+tests/E142Transfer.SelfTest/      解析库自检程序（79 项）
 tests/WaferMapStudio.*.Tests/     xunit 单测
 tools/E142Transfer.RealSampleCheck/  真实样本端到端验收工具
 assets/sample-maps/               示例晶圆图

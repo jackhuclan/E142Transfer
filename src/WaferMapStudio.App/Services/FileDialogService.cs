@@ -10,9 +10,11 @@ namespace WaferMapStudio.App.Services;
 public sealed class FileDialogService : IFileDialogService
 {
     private const string Filter =
-        "晶圆图文件|*.xml;*.csv;*.txt;*.xybin;*.e142;*.klarf"
+        "晶圆图文件|*.xml;*.csv;*.txt;*.sinf;*.xybin;*.e142;*.klarf;*.dat"
         + "|SEMI E142 / G85 XML|*.xml"
         + "|CSV / XYBin|*.csv;*.xybin"
+        + "|SINF|*.sinf;*.txt"
+        + "|TSK 探针台 DAT（配同名 .XTR）|*.dat;*.XTR"
         + "|全部文件|*.*";
 
     public string? PickWaferMapFile()

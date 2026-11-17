@@ -213,6 +213,135 @@ public static class ImportChecks
             var g85BadOutcome = importer.Import(g85Bad);
             Check(g85BadOutcome.Map.Issues.Any(i => i.Code == "G85_BINCOUNT_MISMATCH"),
                 "G85 BinCount 不符时交叉校验告警");
+
+            // ---------- 9. TSK DAT（探针台二进制逐 die 记录）+ 配对 XTR ----------
+            const int datRows = 3;
+            const int datCols = 55;
+            // 行 0：全良品；行 1：col 1..3 为 None 类(bin 21)、col 4..13 为 FAIL(bin 4，含 0x88 变体)、其余良品；
+            // 行 2：col 1..5 空位、其余良品。
+            static (byte Flag, byte Bin) DatCell(int row, int col) => row switch
+            {
+                0 => (0x44, 0),
+                1 => col switch
+                {
+                    <= 3 => (0x00, 21),                               // 0x00 = None 类 → Marked
+                    <= 13 => ((byte)(col % 2 == 0 ? 0x88 : 0x80), 4), // 0x88/0x80 都应判 FAIL
+                    _ => (0x44, 0),
+                },
+                _ => col <= 5 ? ((byte)0x10, (byte)0) : ((byte)0x44, (byte)0),
+            };
+            // pass 147 / fail 10 / marked 3 / null 5，有 die 格位 160
+            var dat = Path.Combine(dir, "synth.dat");
+            File.WriteAllBytes(dat, BuildTskDat(datRows, datCols, "SYNTH-0001", "SYNTH.1", "SYNTH-DEV",
+                total: 160, pass: 147, fail: 13, DatCell));
+
+            var datProbe = importer.Probe(dat);
+            Check(datProbe.Format == WaferMapFormat.TskDat && datProbe.Score >= 0.9,
+                $"TSK DAT 自动识别（置信度 {datProbe.Score:F2}）");
+            var datOutcome = importer.Import(dat);
+            var dm = datOutcome.Map;
+            Check(dm.SubstrateId == "SYNTH-0001" && dm.LotId == "SYNTH.1" && dm.DeviceId == "SYNTH-DEV",
+                "DAT 头部晶圆/批次/产品字段解析");
+            Check(dm.Layout is { Columns: 55, Rows: 3, OriginLocation: OriginLocation.UpperLeft,
+                   AxisDirection: AxisDirection.DownRight, Orientation: WaferOrientation.Degree180 },
+                "DAT 网格 55x3 + UpperLeft/DownRight + FlatAngle=180");
+            Check(Math.Abs(dm.DieSizeX - 3600) < 1e-9 && Math.Abs(dm.DieSizeY - 1580) < 1e-9,
+                "DAT die 尺寸按 0.01µm 单位换算（360000/158000 → 3600x1580µm）");
+            Check(dm.ReferenceDie == (3, 79), "DAT 参考 die = 第 4 列 / 第 80 行");
+            Check(dm.Dies.Count == datRows * datCols, "DAT 网格按全矩形写入（空位保留为 Null，共 165 格）");
+            Check(dm.GoodDies.Count() == 147, "DAT 状态位 0x40/0x04 → Pass，只拾取 147 颗良品");
+            Check(dm.Dies.Values.Count(d => d.Class == NeutralBinClass.Fail) == 10,
+                "DAT 状态位 0x80 与 0x88 都判 Fail（按位判断，不比对整字节）");
+            Check(dm.Dies.Values.Count(d => d.Class == NeutralBinClass.Marked) == 3,
+                "DAT 状态位 0x00 → Marked（None 类有效 die，不进 GoodDies）");
+            Check(dm.Dies.Values.Count(d => d.Class == NeutralBinClass.Null) == 5, "DAT 状态位 0x10 → Null 空位");
+            Check(dm.GetDie(0, 1)?.Class == NeutralBinClass.Marked &&
+                  dm.GetDie(2, 1)?.Class == NeutralBinClass.Marked &&
+                  dm.GetDie(6, 1)?.Class == NeutralBinClass.Fail,
+                "DAT 参考列左侧的列换算正确（col1=1..3 → 0-based 0..2；若忽略列侧别会镜像到 6..8）");
+            Check(dm.GetDie(54, 0)?.Class == NeutralBinClass.Pass && dm.GetDie(0, 2)?.Class == NeutralBinClass.Null,
+                "DAT 最右列与第 3 行首个空位解析正确");
+            Check(!dm.Issues.Any(i => i.Code is "DAT_TOTAL_MISMATCH" or "DAT_PASS_MISMATCH" or
+                      "DAT_ROW_ENCODING" or "DAT_CELL_COLLISION" or "DAT_COL_OUT_OF_RANGE"),
+                "DAT 计数/行距/格位校验全部通过，无异常告警");
+            Check(dm.Issues.Any(i => i.Code == "DAT_FAIL_COUNT_SEMANTICS"),
+                "DAT 头部不良数含 None 类时给出统计口径告警");
+            Check(dm.Issues.Any(i => i.Code == "DAT_NO_XTR"),
+                "DAT 未配对 XTR 时明确说明 bin 语义来自状态位推断");
+
+            var datProjected = NeutralMapProjector.ToDieResults(dm);
+            Check(datProjected.Count == 165 && datProjected.Count(d => !d.IsDie) == 5,
+                "DAT 投影为 DieResult，空位以 IsDie=false 标记");
+            Check(datProjected.Count(d => d.Bin?.Quality == BinQuality.Pass) == 147,
+                "DAT 投影保留 Pass 语义");
+
+            // 配对 XTR：bin 名称与 GOOD/BAD/None 声明；计数能对账才配对
+            var xtr = Path.Combine(dir, "SYNTH-0001_20241009151958.XTR");
+            File.WriteAllLines(xtr,
+            [
+                "4",
+                "diameter=200000,refDieOffsetX=86089,refDieOffsetY=-26405,dieSizeCX=3600,dieSizeCY=1580",
+                "NullBinCode=255,MCSVectorX=0,numBinGroup=4",
+                "GOOD            ,33020,0                                           ,GOOD",
+                "FC_FAIL         ,3158204,4                                          ,BAD",
+                "EDGE_DIE        ,3952820,21                                         ,None",
+                "PROTECT         ,11837540,20                                        ,None",
+            ]);
+            var datPaired = importer.ImportMap(dat);
+            Check(datPaired.Metadata.TryGetValue("XtrSource", out var xtrSource) &&
+                  xtrSource.EndsWith("_20241009151958.XTR", StringComparison.Ordinal),
+                "DAT 按计数对账 + 时间接近度配对到对应轮次的 XTR");
+            Check(datPaired.BinDefinitions["0"].Description.Contains("GOOD") &&
+                  datPaired.BinDefinitions["4"].Description.Contains("FC_FAIL"),
+                "DAT bin 名称取自配对 XTR");
+            Check(!datPaired.Issues.Any(i => i.Code == "DAT_BIN_CLASS_CONFLICT"),
+                "XTR 声明与状态位一致时不报 bin 口径冲突");
+
+            // XTR 声明与状态位冲突时告警（bin 21：XTR 说 BAD，状态位判 None/Marked）
+            var conflictDir = Path.Combine(dir, "conflict");
+            Directory.CreateDirectory(conflictDir);
+            var datConflict = Path.Combine(conflictDir, "synth.dat");
+            File.Copy(dat, datConflict);
+            File.WriteAllLines(Path.Combine(conflictDir, "SYNTH-0001_20241009151958.XTR"),
+            [
+                "4",
+                "GOOD            ,33020,0   ,GOOD",
+                "FC_FAIL         ,3158204,4  ,BAD",
+                "EDGE_DIE        ,3952820,21 ,BAD",
+            ]);
+            var conflictOutcome = importer.ImportMap(datConflict);
+            Check(conflictOutcome.Issues.Any(i => i.Code == "DAT_BIN_CLASS_CONFLICT"),
+                "DAT bin 类别与 XTR 声明冲突时告警，并保持状态位判定");
+
+            // 截断文件：不抛异常，尾部 die 缺失必须报出来
+            var truncated = Path.Combine(dir, "truncated.dat");
+            var full = File.ReadAllBytes(dat);
+            File.WriteAllBytes(truncated, full[..(0xEC + 55 * 6 * 2)]);
+            var truncatedMap = importer.ImportMap(truncated);
+            Check(truncatedMap.Issues.Any(i => i.Code == "DAT_GRID_TRUNCATED") &&
+                  truncatedMap.Dies.Count == 110,
+                "DAT 截断时只写入可用记录并告警（2 行 = 110 格）");
+
+            // 行距编码被破坏：必须报 DAT_ROW_ENCODING，而不是静默错位
+            var broken = Path.Combine(dir, "broken.dat");
+            var brokenBytes = (byte[])full.Clone();
+            brokenBytes[0xEC + 55 * 6 + 3] ^= 0xFF; // 第 2 行首条记录的 w 字节
+            File.WriteAllBytes(broken, brokenBytes);
+            var brokenMap = importer.ImportMap(broken);
+            Check(brokenMap.Issues.Any(i => i.Code == "DAT_ROW_ENCODING"), "DAT 行距编码异常时告警");
+
+            // 扩展名是 .dat 但内容不是本格式：必须拒绝识别
+            var notDat = Path.Combine(dir, "plain.dat");
+            File.WriteAllText(notDat, "this is not a prober dat file");
+            try
+            {
+                importer.Import(notDat);
+                Check(false, "非 TSK DAT 的 .dat 文件应抛异常");
+            }
+            catch (UnsupportedWaferMapFormatException)
+            {
+                Check(true, "非 TSK DAT 内容不会被误识别（不靠扩展名猜）");
+            }
         }
         finally
         {
@@ -224,5 +353,81 @@ public static class ImportChecks
     {
         if (!condition) throw new InvalidOperationException("自检失败: " + message);
         Console.WriteLine($"  OK  {message}");
+    }
+
+    /// <summary>
+    /// 构造一份最小可用的 TSK DAT 样本（头部 + 特殊记录 + 网格），字段偏移与真实样本一致。
+    /// 网格记录按真实约定编码：v=|col+51| 幅值、几何码 bit3 表示参考列右/左、w=|79-行号|。
+    /// </summary>
+    private static byte[] BuildTskDat(
+        int rows,
+        int columns,
+        string waferId,
+        string lotId,
+        string product,
+        int total,
+        int pass,
+        int fail,
+        Func<int, int, (byte Flag, byte Bin)> cell)
+    {
+        var buffer = new byte[0xEC + rows * columns * 6 + 0x40];
+        WriteAscii(buffer, 0x00, "OP  ");
+        WriteAscii(buffer, 0x14, product, 16);
+        WriteUInt32(buffer, 0x28, 360000);
+        WriteUInt32(buffer, 0x2C, 158000);
+        WriteUInt16(buffer, 0x30, 180);
+        WriteUInt16(buffer, 0x34, columns);
+        WriteUInt16(buffer, 0x36, rows);
+        WriteAscii(buffer, 0x3C, waferId, 11);
+        WriteAscii(buffer, 0x52, lotId, 8);
+        foreach (var offset in (int[])[0x94, 0xA0, 0xAC, 0xB8])
+            WriteAscii(buffer, offset, "2410092316", 10);
+        WriteUInt16(buffer, 0xD2, total);
+        WriteUInt16(buffer, 0xD4, pass);
+        WriteUInt16(buffer, 0xD6, fail);
+
+        // 与真实样本一致的特殊记录：X=0x0040 / Y=0x0100 / bin=0
+        buffer[0xE6 + 1] = 0x40;
+        buffer[0xE6 + 3] = 0x01;
+
+        var index = 0;
+        for (var row = 0; row < rows; row++)
+        {
+            for (var column = 1; column <= columns; column++)
+            {
+                var (flag, bin) = cell(row, column);
+                var (v, rightSide) = column >= 4 ? (column - 4, true) : (4 - column, false);
+                var o = 0xEC + index * 6;
+                buffer[o] = flag;
+                buffer[o + 1] = (byte)v;
+                buffer[o + 2] = (byte)((flag == 0x10 ? 0x02 : 0x40) | (rightSide ? 0x08 : 0x00) | 0x04);
+                buffer[o + 3] = (byte)Math.Abs(79 - row);
+                buffer[o + 5] = bin;
+                index++;
+            }
+        }
+
+        return buffer;
+    }
+
+    private static void WriteUInt16(byte[] buffer, int offset, int value)
+    {
+        buffer[offset] = (byte)(value >> 8);
+        buffer[offset + 1] = (byte)value;
+    }
+
+    private static void WriteUInt32(byte[] buffer, int offset, uint value)
+    {
+        buffer[offset] = (byte)(value >> 24);
+        buffer[offset + 1] = (byte)(value >> 16);
+        buffer[offset + 2] = (byte)(value >> 8);
+        buffer[offset + 3] = (byte)value;
+    }
+
+    private static void WriteAscii(byte[] buffer, int offset, string text, int length = -1)
+    {
+        var count = length < 0 ? text.Length : length;
+        for (var i = 0; i < count; i++)
+            buffer[offset + i] = i < text.Length ? (byte)text[i] : (byte)' ';
     }
 }

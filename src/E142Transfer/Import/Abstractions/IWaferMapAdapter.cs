@@ -11,6 +11,8 @@ public enum WaferMapFormat
     Sinf,
     /// <summary>SEMI G85-1101 XML（Amkor / Camtek OQA 等老牌 probe 数据）。</summary>
     G85,
+    /// <summary>TSK（Tokyo Seimitsu）探针台逐 die 二进制记录 .DAT（OP 头 + 6 字节网格记录）。</summary>
+    TskDat,
     Klarf,
     Tel,
     Tff,
