@@ -1,0 +1,36 @@
+## .NET build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+[Bb]uild/
+[Tt]est[Rr]esults/
+artifacts/
+
+## Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+## Generated files
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+*.tmp
+*.nupkg
+
+## OS files
+.DS_Store
+Thumbs.db
+desktop.ini
