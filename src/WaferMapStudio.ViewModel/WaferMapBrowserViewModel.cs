@@ -35,6 +35,54 @@ public sealed partial class WaferMapBrowserViewModel : ObservableObject
     [ObservableProperty]
     private DieVisual? _selectedDie;
 
+    partial void OnSelectedDieChanged(DieVisual? value) =>
+        // 摘要是 SelectedDie 的派生值：点选/取消/换文档后都要让绑定文本跟着刷新
+        OnPropertyChanged(nameof(SelectedDieSummary));
+
+    /// <summary>
+    /// 选中 die 的完整摘要（两行）：第一行是格位与判定，第二行是物理信息。
+    ///
+    /// 之前「选中 die」栏直接绑定 <see cref="DieVisual"/>，走的是 record 的 ToString()
+    /// （形如 "DieVisual { Col = 12, Row = 34, ... }"），再被 TextTrimming 截断，
+    /// 于是显示既不友好也不完整——这里改为显式拼装全部字段。
+    /// </summary>
+    public string SelectedDieSummary
+    {
+        get
+        {
+            if (SelectedDie is not { } die)
+            {
+                return "未选中（在图上点击 die）";
+            }
+
+            var bin = die.BinCode.Length == 0 ? "—" : die.BinCode;
+            var first = $"C{die.Col} · R{die.Row} · Bin {bin} · {die.Category}";
+            // 有些读取器把说明合成成 "bin 21"（与 Bin 段重复），这里不再重复拼一遍
+            if (!string.IsNullOrEmpty(die.Description)
+                && !IsRedundantDescription(die.Description, bin))
+            {
+                first += $" · {die.Description}";
+            }
+
+            var visual = SelectedDocument?.Visual;
+            if (visual is not { StepSizeX: > 0, StepSizeY: > 0 } withPitch)
+            {
+                return first;
+            }
+
+            var second = $"中心 X {(die.Col + 0.5) * withPitch.StepSizeX:N0}"
+                + $" · Y {(die.Row + 0.5) * withPitch.StepSizeY:N0} µm（相对网格原点）";
+            var third = $"die {DieRowViewModel.FormatMicron(withPitch.StepSizeX)}"
+                + $" × {DieRowViewModel.FormatMicron(withPitch.StepSizeY)} µm（宽 × 高）";
+            return $"{first}\n{second}\n{third}";
+        }
+    }
+
+    /// <summary>说明字段只是 Bin 码的回声（如 "21" 或 "bin 21"）时视为无附加信息。</summary>
+    private static bool IsRedundantDescription(string description, string bin) =>
+        string.Equals(description, bin, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(description, $"bin {bin}", StringComparison.OrdinalIgnoreCase);
+
     partial void OnSelectedDocumentChanged(WaferMapDocumentViewModel? value)
     {
         // 切换文档时清空点选，避免残留上一份文件的 die 引用

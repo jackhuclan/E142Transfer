@@ -18,8 +18,9 @@
 
 **WaferMapStudio 查看器（src/WaferMapStudio.*）**
 - 加载 / 多文档切换 / 自动识别（解析错误进日志区，不静默吞错）；
-- 解析信息面板：格式、读取器、网格、有效 die / 良品 / 良率、类别分布、Substrate/Device；
-- die 明细 DataGrid（虚拟化）与解析/运行日志区；
+- 解析信息面板：格式、读取器、网格、**die 尺寸（宽 × 高 µm）**、**物理幅面（mm）**、有效 die / 良品 / 良率、类别分布、Substrate/Device；无步距的文件显示「—」而非伪造 0；
+- 「选中 die」栏三行完整信息：格位 + Bin + 类别 · 中心物理坐标（µm，相对网格原点）· die 宽高（µm）；
+- die 明细 DataGrid（虚拟化，含 物理X / 物理Y / die 尺寸 列）与解析/运行日志区；
 - 可复用 `WaferMapView` 控件：Canvas 逐格渲染 + Viewbox 自适应，BinCode → 颜色
   （同类别不同码 = 同色系不同深浅），参考 die 虚线高亮，点选双向绑定，颜色图例浮层；
 - 网格按 die 步距等比绘制：两轴共用同一套「像素/µm」换算（`GridMetrics`），
@@ -32,7 +33,7 @@
 
 ```bash
 dotnet build E142Transfer.slnx -c Release          # 0 警告 0 错误
-dotnet test E142Transfer.slnx                       # xunit（Core/ViewModel，50 项）
+dotnet test E142Transfer.slnx                       # xunit（Core/ViewModel，59 项）
 dotnet run --project tests/E142Transfer.SelfTest    # 解析库自检（99 项 OK）
 dotnet run --project src/WaferMapStudio.App         # 启动查看器
 dotnet run --project tools/E142Transfer.RealSampleCheck -- <wafer-map 文件路径>

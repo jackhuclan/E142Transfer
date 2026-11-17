@@ -10,7 +10,7 @@ namespace WaferMapStudio.ViewModel;
 /// <summary>DataGrid 行：单个 die 的解析结果（含 Null 空位行，便于核对完整网格）。</summary>
 public sealed class DieRowViewModel
 {
-    public DieRowViewModel(DieVisual die)
+    public DieRowViewModel(DieVisual die, double stepSizeX, double stepSizeY)
     {
         Col = die.Col;
         Row = die.Row;
@@ -19,6 +19,13 @@ public sealed class DieRowViewModel
         Description = die.Description ?? string.Empty;
         IsGood = die.Category == DieCategory.Pass;
         IsRealDie = die.IsRealDie;
+
+        // 物理信息：die 中心点相对网格原点（µm）+ 单格宽高（µm）。
+        // 上游未提供步距（StepSize ≤ 0）时给 "—"，而不是捏造 0 误导对账。
+        var hasPitch = stepSizeX > 0 && stepSizeY > 0;
+        PhysicalX = hasPitch ? ((die.Col + 0.5) * stepSizeX).ToString("N0") : "—";
+        PhysicalY = hasPitch ? ((die.Row + 0.5) * stepSizeY).ToString("N0") : "—";
+        SizeText = hasPitch ? $"{FormatMicron(stepSizeX)} × {FormatMicron(stepSizeY)} µm" : "—";
     }
 
     public int Col { get; }
@@ -26,8 +33,20 @@ public sealed class DieRowViewModel
     public string BinCode { get; }
     public string Category { get; }
     public string Description { get; }
+
+    /// <summary>die 中心点相对网格原点的物理 X（µm）；无步距时为 "—"。</summary>
+    public string PhysicalX { get; }
+
+    /// <summary>die 中心点相对网格原点的物理 Y（µm）；无步距时为 "—"。</summary>
+    public string PhysicalY { get; }
+
+    /// <summary>单格物理尺寸「宽 × 高 µm」；无步距时为 "—"。</summary>
+    public string SizeText { get; }
+
     public bool IsGood { get; }
     public bool IsRealDie { get; }
+
+    internal static string FormatMicron(double value) => value.ToString("0.###");
 }
 
 /// <summary>解析告警/错误的一条日志。</summary>
@@ -63,7 +82,7 @@ public sealed partial class WaferMapDocumentViewModel : ObservableObject
 
         foreach (var die in visual.Dies)
         {
-            DieRows.Add(new DieRowViewModel(die));
+            DieRows.Add(new DieRowViewModel(die, visual.StepSizeX, visual.StepSizeY));
         }
 
         foreach (var issue in outcome.Map.Issues)
@@ -98,6 +117,22 @@ public sealed partial class WaferMapDocumentViewModel : ObservableObject
     public string DeviceId => Visual.DeviceId;
     public string LotId => Visual.LotId;
     public string Grid => $"{Visual.Columns} × {Visual.Rows}";
+
+    /// <summary>单格物理尺寸「宽 × 高 µm」（即网格里每个格子的实际大小）；上游未提供步距时为 "—"。</summary>
+    public string DieSizeText => HasPitch
+        ? $"{DieRowViewModel.FormatMicron(Visual.StepSizeX)} × {DieRowViewModel.FormatMicron(Visual.StepSizeY)} µm"
+        : "—（上游未提供步距）";
+
+    /// <summary>
+    /// 网格物理幅面 = 列数×X 步距 × 行数×Y 步距，换算为 mm 显示。
+    /// 对圆晶圆，这两个数应近似相等（正圆的量化表达）。
+    /// </summary>
+    public string PhysicalExtentText => HasPitch
+        ? $"{Visual.Columns * Visual.StepSizeX / 1000:0.##} × {Visual.Rows * Visual.StepSizeY / 1000:0.##} mm"
+        : "—";
+
+    private bool HasPitch => Visual.StepSizeX > 0 && Visual.StepSizeY > 0;
+
     public int DieCount => Visual.DieCount;
     public int GoodDieCount => Visual.CategoryCounts.GetValueOrDefault(DieCategory.Pass);
 

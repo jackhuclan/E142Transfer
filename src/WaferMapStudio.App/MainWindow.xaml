@@ -157,6 +157,9 @@
                                 <RowDefinition Height="26" />
                                 <RowDefinition Height="26" />
                                 <RowDefinition Height="26" />
+                                <RowDefinition Height="26" />
+                                <!-- 选中 die：内容可能折两行，Auto 由文本撑开 -->
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <TextBlock Text="格式" Style="{StaticResource CaptionText}" />
@@ -168,8 +171,16 @@
                             <TextBlock Grid.Row="2" Text="网格" Style="{StaticResource CaptionText}" />
                             <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Browser.SelectedDocument.Grid}"
                                        Style="{StaticResource MonoText}" Margin="18,0,0,0" />
-                            <TextBlock Grid.Row="3" Text="有效 die / 良品" Style="{StaticResource CaptionText}" />
-                            <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="18,0,0,0">
+                            <TextBlock Grid.Row="3" Text="die 尺寸" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Browser.SelectedDocument.DieSizeText}"
+                                       Style="{StaticResource MonoText}" Margin="18,0,0,0"
+                                       ToolTip="网格中每个格子的物理尺寸（宽 × 高），来自文件声明的 die 步距" />
+                            <TextBlock Grid.Row="4" Text="物理幅面" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Browser.SelectedDocument.PhysicalExtentText}"
+                                       Style="{StaticResource MonoText}" Margin="18,0,0,0"
+                                       ToolTip="列数 × X 步距、行数 × Y 步距；圆晶圆两个数应近似相等" />
+                            <TextBlock Grid.Row="5" Text="有效 die / 良品" Style="{StaticResource CaptionText}" />
+                            <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="18,0,0,0">
                                 <TextBlock Text="{Binding Browser.SelectedDocument.DieCount}" Style="{StaticResource MonoText}" />
                                 <TextBlock Text=" / " Style="{StaticResource MonoText}" />
                                 <TextBlock Text="{Binding Browser.SelectedDocument.GoodDieCount}"
@@ -178,21 +189,28 @@
                                 <TextBlock Text="{Binding Browser.SelectedDocument.YieldText}"
                                            Style="{StaticResource MonoText}" Foreground="{StaticResource OkBrush}" />
                             </StackPanel>
-                            <TextBlock Grid.Row="4" Text="类别分布" Style="{StaticResource CaptionText}" />
-                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Browser.SelectedDocument.CategorySummary}"
+                            <TextBlock Grid.Row="6" Text="类别分布" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding Browser.SelectedDocument.CategorySummary}"
                                        Style="{StaticResource MonoText}" Margin="18,0,0,0" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Grid.Row="5" Text="Substrate" Style="{StaticResource CaptionText}" />
-                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Browser.SelectedDocument.SubstrateId}"
+                            <TextBlock Grid.Row="7" Text="Substrate" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding Browser.SelectedDocument.SubstrateId}"
                                        Style="{StaticResource MonoText}" Margin="18,0,0,0" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Grid.Row="6" Text="Device / Lot" Style="{StaticResource CaptionText}" />
-                            <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding Browser.SelectedDocument.DeviceId}"
+                            <TextBlock Grid.Row="8" Text="Device / Lot" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding Browser.SelectedDocument.DeviceId}"
                                        Style="{StaticResource MonoText}" Margin="18,0,0,0" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Grid.Row="7" Text="选中 die" Style="{StaticResource CaptionText}" />
-                            <TextBlock Grid.Row="7" Grid.Column="1"
-                                       Text="{Binding Browser.SelectedDie}"
+                            <TextBlock Grid.Row="9" Text="选中 die" Style="{StaticResource CaptionText}"
+                                       VerticalAlignment="Top" Margin="0,4,0,0" />
+                            <!--
+                              摘要来自 Browser.SelectedDieSummary（显式拼装的两行文本），
+                              不再直接绑 DieVisual——record 的 ToString 会显示
+                              "DieVisual { Col = ..., ... }" 且被省略号截断，信息不完整。
+                            -->
+                            <TextBlock Grid.Row="9" Grid.Column="1"
+                                       Text="{Binding Browser.SelectedDieSummary}"
                                        Style="{StaticResource MonoText}"
-                                       Margin="18,0,0,0" Foreground="{StaticResource AccentBrush}"
-                                       TextTrimming="CharacterEllipsis" />
+                                       Margin="18,4,0,2" Foreground="{StaticResource AccentBrush}"
+                                       TextWrapping="Wrap"
+                                       ToolTip="{Binding Browser.SelectedDieSummary}" />
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -211,6 +229,10 @@
                                 <DataGridTextColumn Header="Bin" Binding="{Binding BinCode}" />
                                 <DataGridTextColumn Header="类别" Binding="{Binding Category}" />
                                 <DataGridTextColumn Header="说明" Binding="{Binding Description}" />
+                                <!-- 物理信息：die 中心相对网格原点（µm）+ 单格宽高；无步距时显示 — -->
+                                <DataGridTextColumn Header="物理X (µm)" Binding="{Binding PhysicalX}" />
+                                <DataGridTextColumn Header="物理Y (µm)" Binding="{Binding PhysicalY}" />
+                                <DataGridTextColumn Header="die 尺寸 (宽×高)" Binding="{Binding SizeText}" />
                             </DataGrid.Columns>
                         </DataGrid>
 
