@@ -9,6 +9,8 @@ public enum WaferMapFormat
     E142,
     CsvXyBin,
     Sinf,
+    /// <summary>SEMI G85-1101 XML（Amkor / Camtek OQA 等老牌 probe 数据）。</summary>
+    G85,
     Klarf,
     Tel,
     Tff,

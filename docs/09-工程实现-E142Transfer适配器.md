@@ -93,9 +93,9 @@ dotnet run --project E142Transfer.SelfTest/E142Transfer.SelfTest.csproj
 自检覆盖：
 
 - **阶段一（7 项）**：写入→解析闭环逐条校验、3D 堆叠反查、坐标归一化往返、BinCode 定义解析、追加 overlay。
-- **阶段二（32 项）**：CSV 自动识别与负坐标平移、CSV 写回再导入闭环、SINF 头字段与网格、SINF `BCEQU` 良品判定与 `FF/FD/FE/@@/__` 特殊码、SINF 1-based 参考坐标修正与 3-Digit 变体、E142 bin 阵列 + BinCode 表 + TransferMap、投影到 `DieResult.Transfers`、未知格式明确报错。
+- **阶段二（48 项）**：CSV 自动识别与负坐标平移、CSV 写回再导入闭环、SINF 头字段与网格、SINF `BCEQU` 良品判定与 `FF/FD/FE/@@/__` 特殊码、SINF 1-based 参考坐标修正与 3-Digit 变体、E142 bin 阵列 + BinCode 表 + TransferMap、投影到 `DieResult.Transfers`、未知格式明确报错，以及 G85 识别/Marked bin/数字原点/单位告警/参考 die/BinCount 交叉校验（20 项，见 docs/12）。
 
-全部通过。
+全部通过（合计 55 项）。
 
 ## 新增一种格式（如 KLARF）
 

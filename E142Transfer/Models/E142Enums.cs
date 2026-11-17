@@ -56,6 +56,7 @@ public enum BinQuality
     Reference,
     Skip,
     Edge,
+    [Description("已标记未判定（G85 Marked Bin）")] Marked,
 }
 
 /// <summary>

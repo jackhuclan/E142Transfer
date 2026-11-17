@@ -13,6 +13,11 @@ public enum NeutralBinClass
     Reference,
     Skip,
     Edge,
+    /// <summary>
+    /// 已标记但未判定的 die（如 G85/Camtek 的 BinQuality="None" / Marked Bin）。
+    /// 它是有效 die，但既非良品也非明确不良，禁止进入 GoodDies； disposition 需人工确认。
+    /// </summary>
+    Marked,
 }
 
 /// <summary>中性 bin 码定义：码值 → 语义。</summary>
@@ -33,6 +38,7 @@ public sealed class NeutralBinDefinition
         BinQuality.Reference => NeutralBinClass.Reference,
         BinQuality.Skip => NeutralBinClass.Skip,
         BinQuality.Edge => NeutralBinClass.Edge,
+        BinQuality.Marked => NeutralBinClass.Marked,
         _ => NeutralBinClass.Unknown,
     };
 }
@@ -81,6 +87,18 @@ public sealed class NeutralWaferMap
     public string SubstrateId { get; set; } = string.Empty;
     public SubstrateType SubstrateType { get; set; } = SubstrateType.Wafer;
     public NeutralLayout Layout { get; set; } = new();
+
+    /// <summary>die 物理尺寸（µm），来自 G85 DeviceSizeX/Y 或 SINF XDIES/YDIES。</summary>
+    public double DieSizeX { get; set; }
+    public double DieSizeY { get; set; }
+
+    /// <summary>参考 die（阵列坐标），用于对齐 map 与物理 die；G85 REFP1 / SINF REFPX/REFPY。</summary>
+    public (int X, int Y)? ReferenceDie { get; set; }
+
+    /// <summary>厂商扩展字段原样保留（G85 SupplierData：SLOT、FRAMEID、ORGFNLOC、DUTMS 等）。</summary>
+    private readonly Dictionary<string, string> _metadata = new(StringComparer.OrdinalIgnoreCase);
+    public IReadOnlyDictionary<string, string> Metadata => _metadata;
+    public void SetMeta(string key, string value) => _metadata[key] = value;
 
     private readonly Dictionary<string, NeutralBinDefinition> _binDefinitions =
         new(StringComparer.Ordinal);

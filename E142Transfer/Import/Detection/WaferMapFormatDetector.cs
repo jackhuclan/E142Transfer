@@ -32,7 +32,8 @@ public sealed class WaferMapFormatDetector
     public static WaferMapFormatDetector CreateDefault() => new(
         new E142MapReader(),
         new XyBinCsvReader(),
-        new SinfMapReader());
+        new SinfMapReader(),
+        new G85MapReader());
 
     /// <summary>识别文件应使用的 Reader。</summary>
     public IWaferMapReader Detect(string path)

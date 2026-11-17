@@ -151,6 +151,68 @@ public static class ImportChecks
             Check(threeOutcome.Map.GetDie(3, 0)?.Class == NeutralBinClass.Skip,
                 "3 Digit @@@ → Skip（真实样本 Amkor/G85 用三位未检测码）");
             Check(threeOutcome.Map.Dies.Count == 4, "3 Digit 含 @@@ 的行不再被整行跳过");
+
+            // ---------- 8. G85（SEMI G85-1101 XML，真实 Amkor/Camtek 结构） ----------
+            var g85 = Path.Combine(dir, "amkor.e142.g85.xml");
+            File.WriteAllText(g85, """
+            <?xml version="1.0"?>
+            <Maps><Map xmlns:semi="http://www.semi.org" WaferId="4EEEB00000-HW3UREG" FormatRevision="SEMI G85-1101">
+              <Device ProductId="IBM_AURA_3.1_OQA" LotId="4EEEB00000" CreateDate="20140930165234"
+                      Orientation="180" Rows="3" Columns="4" DeviceSizeX="2005.755" DeviceSizeY="2806.044"
+                      StepSizeX="2098" StepSizeY="2897.9" OriginLocation="2" BinType="Decimal"
+                      FrameId="HW3UREG" NullBin="255">
+                <Bin BinCode="000" BinCount="1" BinQuality="Fail" BinDescription="Non-pickable site"/>
+                <Bin BinCode="001" BinCount="2" BinQuality="Pass" BinDescription="Pickable site"/>
+                <Bin BinCode="007" BinCount="4" BinQuality="None" BinDescription="Marked Bin"/>
+                <SupplierData DUTMS="10^-6*m" FileName="WAFHW3UREGa.map" ORGFNLOC="180"
+                              WAFER="IBM_AURA_3.1_OQA" WAFERID="HW3UREG" SLOT="2"
+                              REFP1.X="1" REFP1.Y="2" REFP2.X="0" REFP2.Y="0"/>
+                <Data MapName="Camtek" Version="1">
+                  <Row><![CDATA[255 001 007 007]]></Row>
+                  <Row><![CDATA[001 007 000 007]]></Row>
+                  <Row><![CDATA[255 255 255 255]]></Row>
+                </Data>
+              </Device>
+            </Map></Maps>
+            """);
+            var g85Probe = importer.Probe(g85);
+            Check(g85Probe.Format == WaferMapFormat.G85, $"G85 自动识别（置信度 {g85Probe.Score:F2}，优先于 E142）");
+            var g85Outcome = importer.Import(g85);
+            var gm = g85Outcome.Map;
+            Check(gm.SubstrateId == "4EEEB00000-HW3UREG" && gm.LotId == "4EEEB00000" &&
+                  gm.DeviceId == "IBM_AURA_3.1_OQA", "G85 WaferId/LotId/ProductId 解析");
+            Check(gm.Layout is { Columns: 4, Rows: 3, OriginLocation: OriginLocation.UpperLeft,
+                   AxisDirection: AxisDirection.DownRight, Orientation: WaferOrientation.Degree180 },
+                "G85 网格 4x3 + OriginLocation=2→UpperLeft + Orientation=180");
+            Check(Math.Abs(gm.Layout.StepSizeX - 2098) < 1e-9 && Math.Abs(gm.DieSizeX - 2005.755) < 1e-3,
+                "G85 StepSize/DieSize 原样保留（µm 未换算）");
+            Check(gm.Dies.Count == 12, "G85 NullBin 保留为 Null die，网格完整 4x3=12");
+            Check(gm.GetDie(1, 0)?.Class == NeutralBinClass.Pass, "G85 bin 001 Pass");
+            Check(gm.GetDie(2, 0)?.Class == NeutralBinClass.Marked, "G85 bin 007 None → Marked（不是 Null/Fail）");
+            Check(gm.GetDie(2, 1)?.Class == NeutralBinClass.Fail, "G85 bin 000 Fail");
+            Check(gm.GetDie(0, 0)?.Class == NeutralBinClass.Null, "G85 bin 255 NullBin → Null");
+            Check(gm.GoodDies.Count() == 2, "G85 Marked 不进 GoodDies，只拾取 2 颗 Pass");
+            Check(gm.ReferenceDie == (1, 2), "G85 REFP1 参考 die 解析");
+            Check(gm.Metadata.TryGetValue("SLOT", out var slot) && slot == "2" &&
+                  gm.Metadata.TryGetValue("DUTMS", out var dutms) && dutms == "10^-6*m",
+                "G85 SupplierData 扩展字段保留");
+            Check(gm.Issues.Any(i => i.Code == "G85_BIN_MARKED"), "G85 Marked Bin 告警");
+            Check(gm.Issues.Any(i => i.Code == "G85_UNITS"), "G85 单位告警（不静默换算）");
+            Check(gm.Issues.Any(i => i.Code == "G85_REFERENCE"), "G85 参考 die 对齐告警");
+            Check(!gm.Issues.Any(i => i.Code == "G85_BINCOUNT_MISMATCH"), "G85 BinCount 声明与实际一致，无告警");
+
+            var g85Projected = NeutralMapProjector.ToDieResults(gm);
+            Check(g85Projected.Count == 12 && g85Projected.Count(d => !d.IsDie) == 5,
+                "G85 投影为 DieResult，5 个 Null 位以 IsDie=false 标记（NullBin 无 Bin 定义，符合 G85 规范）");
+            Check(g85Projected.Any(d => d.Bin?.Quality == BinQuality.Marked),
+                "G85 Marked 类别经投影保留为 BinQuality.Marked");
+
+            // BinCount 不一致时应报非致命告警
+            var g85Bad = Path.Combine(dir, "amkor.bad.xml");
+            File.WriteAllText(g85Bad, File.ReadAllText(g85).Replace("BinCode=\"001\" BinCount=\"2\"", "BinCode=\"001\" BinCount=\"9\""));
+            var g85BadOutcome = importer.Import(g85Bad);
+            Check(g85BadOutcome.Map.Issues.Any(i => i.Code == "G85_BINCOUNT_MISMATCH"),
+                "G85 BinCount 不符时交叉校验告警");
         }
         finally
         {

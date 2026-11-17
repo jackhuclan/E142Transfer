@@ -61,6 +61,7 @@ public static class NeutralMapProjector
         NeutralBinClass.Reference => BinQuality.Reference,
         NeutralBinClass.Skip => BinQuality.Skip,
         NeutralBinClass.Edge => BinQuality.Edge,
+        NeutralBinClass.Marked => BinQuality.Marked,
         _ => BinQuality.Unknown,
     };
 }

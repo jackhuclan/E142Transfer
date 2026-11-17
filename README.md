@@ -81,11 +81,15 @@ E142Transfer/Import/
 ├─ Readers/
 │   ├─ XyBinCsvReader.cs        # CSV/XYBin：x,y,bin（可带 class 第 4 列）
 │   ├─ SinfMapReader.cs         # SINF：BCEQU / hex+3-Digit bin / 特殊码 / 1-based 修正
+│   ├─ G85MapReader.cs          # SEMI G85-1101 XML（Amkor/Camtek）：Marked/数字原点/单位告警
 │   └─ E142MapReader.cs         # E142：复用 Parser + 补 bin 阵列解析
 ├─ Writers/
 │   └─ CsvXyBinWriter.cs        # 中性 map → x,y,bin CSV
 ├─ WaferMapImporter.cs          # 门面：Import() / Probe()
 └─ NeutralMapProjector.cs       # NeutralWaferMap → DieResult（接既有链路）
+
+E142Transfer.RealSampleCheck/  # 验证工具：读真实晶圆图，输出识别/映射/Bin 校验/Issues 报告
+.workbuddy/skills/amkor-g85-ingest/  # 可复用技能：G85 接入五步流程 + 字段映射 + 预检脚本
 ```
 
 ### 核心接口
@@ -103,7 +107,7 @@ public interface IWaferMapReader
 ### 上位机调用方式
 
 ```csharp
-var importer = new WaferMapImporter();          // 默认注册 E142 / CSV / SINF
+var importer = new WaferMapImporter();          // 默认注册 E142 / CSV / SINF / G85
 var outcome  = importer.Import(path);           // 自动识别 + 读取
 var dies     = NeutralMapProjector.ToDieResults(outcome.Map);  // 挂 EL/PL/AOI 判定
 foreach (var issue in outcome.Map.Issues) log.Warn(issue.Message);  // 解析告警不可丢
@@ -119,11 +123,18 @@ foreach (var issue in outcome.Map.Issues) log.Warn(issue.Message);  // 解析告
 
 ### 自检覆盖
 
-`ImportChecks.Run()` 的 32 项已验证：CSV 格式识别与负坐标平移、CSV 写回闭环、SINF 头字段与网格、SINF `BCEQU` 良品判定与 `FF/FD/FE/@@/__` 特殊码、SINF 1-based 参考坐标修正与 3-Digit 变体、E142 的 bin 阵列 + BinCode 表 + TransferMap、投影到 `DieResult`、未知格式明确报错。
+`ImportChecks.Run()` 的 55 项已验证：CSV 格式识别与负坐标平移、CSV 写回闭环、SINF 头字段与网格、SINF `BCEQU` 良品判定与 `FF/FD/FE/@@/__` 特殊码、SINF 1-based 参考坐标修正与 3-Digit 变体、E142 的 bin 阵列 + BinCode 表 + TransferMap、**G85 识别/Marked bin/数字原点/单位告警/参考 die/BinCount 交叉校验**、投影到 `DieResult`、未知格式明确报错。
+
+真实样本验证工具：
+
+```bash
+dotnet run --project E142Transfer.RealSampleCheck -- "<晶圆图路径>"   # 可传多个文件
+python .workbuddy/skills/amkor-g85-ingest/scripts/validate_g85.py <file.xml>  # 无 .NET 的轻量预检
+```
 
 ## 知识文档
 
-`docs/` 下有 11 篇按主题拆分的知识文档（点墨 → bin 编码 → E142 → TransferMap/KGD → 格式生态 → 工程实现 → SINF/KLARF 详解），入口见 [docs/README.md](./docs/README.md)。
+`docs/` 下有 12 篇按主题拆分的知识文档（点墨 → bin 编码 → E142 → TransferMap/KGD → 格式生态 → 工程实现 → SINF/KLARF/G85 详解），入口见 [docs/README.md](./docs/README.md)。
 
 ## 待办 / 可按厂内规范扩展
 
@@ -131,4 +142,5 @@ foreach (var issue in outcome.Map.Issues) log.Warn(issue.Message);  // 解析告
 - `MapType=Row/Column` 的 bin 阵列尚未解析（会写入 `ImportIssue` 提示）；2DArray / Array / Coordinate 已支持。
 - SINF `BCEQU`、hex/3-Digit bin、`FF/FD/FE/@@/__` 特殊码与 1-based 参考坐标已支持；**行序与 flat/notch 方向仍需按厂内样本校准**（写入 `ImportIssue`，不自动猜测）。详见 [docs/10](./docs/10-SINF格式详解.md)。
 - KLARF 是缺陷级数据，接它需给中性模型扩展缺陷集合（含 `XREL/YREL` 内部坐标）。详见 [docs/11](./docs/11-KLARF格式详解.md)。
+- G85 已支持（含 `None`→`Marked`、数字原点、单位告警、BinCount 校验、与 SINF 转置提示）；接新 Amkor/G85 样本用 `amkor-g85-ingest` 技能按五步流程处理，详见 [docs/12](./docs/12-SEMI-G85-格式与Amkor样本接入.md)。
 - GEM 接口传输（E142.2 的 S14F1 消息）不在本骨架范围，属设备通信层。
