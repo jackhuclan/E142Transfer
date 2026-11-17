@@ -82,6 +82,9 @@ public sealed partial class WaferMapDocumentViewModel : ObservableObject
 
     public string FileName { get; }
 
+    /// <summary>原始文件路径：用于「已加载」下拉的去重判定与悬停提示。</summary>
+    public string SourcePath => Visual.SourcePath;
+
     public string FormatName => FormatDisplayName(Outcome.Format);
 
     public string ReaderName => Outcome.Reader.GetType().Name;

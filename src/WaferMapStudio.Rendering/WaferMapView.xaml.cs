@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using WaferMapStudio.Core.Interaction;
 using WaferMapStudio.Core.Visuals;
 
 namespace WaferMapStudio.Rendering;
@@ -30,10 +31,39 @@ public sealed class LegendItemView
 /// 独立于 ViewModel：数据入口是 <see cref="Map"/>（Core 视觉模型）+
 /// <see cref="Palette"/>（配色）；点选结果通过 <see cref="SelectedDie"/> 依赖属性
 /// 双向暴露，宿主 XAML 可直接 <c>SelectedDie="{Binding SelectedDie, Mode=TwoWay}"</c>。
+///
+/// 交互：滚轮缩放（以鼠标位置为锚点，1.0 = 适应视口，上限见 <see cref="MaxZoom"/>）、
+/// 放大后中键/右键拖动平移、左键点选 die。几何计算在
+/// <see cref="ViewportZoom"/>（Core，可单测），本类只负责把结果写进变换。
 /// </summary>
 public partial class WaferMapView : UserControl
 {
     private const string AccentHex = "#2563EB";
+
+    /// <summary>缩放上限：再大也难看清单 die，且会把栅格撑到极限，8 倍足够逐格核对。</summary>
+    public const double MaxZoom = 8.0;
+
+    private readonly Brush _accentBrush;
+    private readonly ViewportZoom _zoom = new(minScale: 1.0, maxScale: MaxZoom);
+
+    private DieVisual? _selectedDie;
+
+    /// <summary>平移拖动起点（控件坐标，屏幕像素）；null 表示未在拖动。</summary>
+    private Point? _panAnchor;
+
+    public WaferMapView()
+    {
+        InitializeComponent();
+        _accentBrush = FrozenBrush(AccentHex);
+
+        MouseLeftButtonUp += OnMouseLeftButtonUp;
+        MouseWheel += OnMouseWheel;
+        PreviewMouseDown += OnPreviewMouseDown;
+        MouseMove += OnMouseMove;
+        PreviewMouseUp += OnPreviewMouseUp;
+        LostMouseCapture += OnLostMouseCapture;
+        MapViewbox.SizeChanged += OnViewboxSizeChanged;
+    }
 
     /// <summary>单格边长（设备无关像素）。die 间留 1px 间隙便于区分相邻同色格。</summary>
     public static readonly DependencyProperty CellSizeProperty = DependencyProperty.Register(
@@ -56,16 +86,6 @@ public partial class WaferMapView : UserControl
         nameof(SelectedDie), typeof(DieVisual), typeof(WaferMapView),
         new FrameworkPropertyMetadata(null,
             FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSelectedDieChanged));
-
-    private readonly Brush _accentBrush;
-    private DieVisual? _selectedDie;
-
-    public WaferMapView()
-    {
-        InitializeComponent();
-        _accentBrush = FrozenBrush(AccentHex);
-        MouseLeftButtonUp += OnMouseLeftButtonUp;
-    }
 
     public double CellSize
     {
@@ -100,8 +120,18 @@ public partial class WaferMapView : UserControl
         set => SetValue(SelectedDieProperty, value);
     }
 
-    private static void OnMapChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
-        ((WaferMapView)d).Rebuild();
+    /// <summary>当前缩放倍数（1.0 = 适应视口）。</summary>
+    public double Zoom => _zoom.Scale;
+
+    private bool HasMap => Map is { Dies.Count: > 0 };
+
+    private static void OnMapChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var view = (WaferMapView)d;
+        // 换一份数据就回到适应视口：上一份的缩放/平移对新的网格没有意义
+        view.ResetZoom();
+        view.Rebuild();
+    }
 
     private static void OnRenderInputChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
         ((WaferMapView)d).Rebuild();
@@ -132,6 +162,8 @@ public partial class WaferMapView : UserControl
         var map = Map;
         if (map is null || map.Dies.Count == 0)
         {
+            MapCanvas.Width = 0;
+            MapCanvas.Height = 0;
             LegendHost.Visibility = Visibility.Collapsed;
             return;
         }
@@ -211,6 +243,123 @@ public partial class WaferMapView : UserControl
         LegendHost.Visibility = ShowLegend && Map is not null && Map.Dies.Count > 0
             ? Visibility.Visible
             : Visibility.Collapsed;
+
+    // ========== 缩放与平移 ==========
+
+    private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (e.Delta == 0 || !HasMap)
+        {
+            return;
+        }
+
+        // 注意：GetPosition(MapViewbox) 返回的是未变换的「内容坐标」，
+        // 正是 ViewportZoom 需要的锚点（缩放后该点仍停在鼠标下）
+        var anchor = e.GetPosition(MapViewbox);
+        if (_zoom.ZoomByWheel(e.Delta, anchor.X, anchor.Y,
+                MapViewbox.ActualWidth, MapViewbox.ActualHeight))
+        {
+            ApplyZoom();
+            e.Handled = true;
+        }
+    }
+
+    private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_panAnchor is not null || !_zoom.IsZoomed || !HasMap)
+        {
+            return;
+        }
+
+        // 左键留给 die 点选，这里只接管中键/右键，避免改变既有选中交互
+        if (e.ChangedButton is not (MouseButton.Middle or MouseButton.Right))
+        {
+            return;
+        }
+
+        _panAnchor = e.GetPosition(this);
+        Mouse.OverrideCursor = Cursors.SizeAll;
+        _ = CaptureMouse();
+        e.Handled = true;
+    }
+
+    private void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (_panAnchor is not { } anchor)
+        {
+            return;
+        }
+
+        var current = e.GetPosition(this);
+        // 增量本身是屏幕像素，直接交给 ViewportZoom 做边界钳制
+        if (_zoom.PanBy(current.X - anchor.X, current.Y - anchor.Y,
+                MapViewbox.ActualWidth, MapViewbox.ActualHeight))
+        {
+            ApplyZoom();
+        }
+
+        _panAnchor = current;
+    }
+
+    private void OnPreviewMouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_panAnchor is null)
+        {
+            return;
+        }
+
+        if (e.ChangedButton is not (MouseButton.Middle or MouseButton.Right))
+        {
+            return;
+        }
+
+        EndPan();
+        e.Handled = true;
+    }
+
+    private void OnLostMouseCapture(object sender, MouseEventArgs e) => EndPan();
+
+    private void EndPan()
+    {
+        if (_panAnchor is null)
+        {
+            return;
+        }
+
+        _panAnchor = null;
+        Mouse.OverrideCursor = null;
+        if (IsMouseCaptured)
+        {
+            ReleaseMouseCapture();
+        }
+    }
+
+    private void OnViewboxSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // 窗口变大/变小后原来的平移量可能露出空白边，重新钳制一次
+        if (_zoom.Clamp(MapViewbox.ActualWidth, MapViewbox.ActualHeight))
+        {
+            ApplyZoom();
+        }
+    }
+
+    private void ApplyZoom()
+    {
+        ZoomScaleTransform.ScaleX = _zoom.Scale;
+        ZoomScaleTransform.ScaleY = _zoom.Scale;
+        ZoomPanTransform.X = _zoom.OffsetX;
+        ZoomPanTransform.Y = _zoom.OffsetY;
+    }
+
+    private void ResetZoom()
+    {
+        if (_zoom.Reset())
+        {
+            ApplyZoom();
+        }
+    }
+
+    // ========== 点选 ==========
 
     private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {

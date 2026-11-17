@@ -59,10 +59,42 @@
 
                 <TextBlock Grid.Column="2" Text="已加载" Style="{StaticResource CaptionText}"
                            VerticalAlignment="Center" Margin="0,0,8,0" />
-                <ComboBox Grid.Column="3" Style="{StaticResource AppComboBox}" MinWidth="220"
-                          ItemsSource="{Binding Browser.Documents}"
-                          SelectedItem="{Binding Browser.SelectedDocument}"
-                          DisplayMemberPath="FileName" VerticalAlignment="Center" />
+
+                <!--
+                  下拉框特意用 ItemTemplate 而不是 DisplayMemberPath：
+                  选择框（未展开时显示的那一行）走 SelectionBoxItem + SelectionBoxItemTemplate，
+                  而 DisplayMemberPath 并不会生成 SelectionBoxItemTemplate，
+                  于是未展开时会退化成对象的 ToString()（显示成类型全名）。用 ItemTemplate 两条路径同源。
+                -->
+                <Grid Grid.Column="3" VerticalAlignment="Center">
+                    <ComboBox Style="{StaticResource AppComboBox}" MinWidth="220"
+                              ItemsSource="{Binding Browser.Documents}"
+                              SelectedItem="{Binding Browser.SelectedDocument, Mode=TwoWay}"
+                              ToolTip="{Binding Browser.SelectedDocument.SourcePath}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <!-- 空列表占位：没有已加载文件时给出明确提示，而不是一个空框 -->
+                    <TextBlock Text="尚未加载文件" IsHitTestVisible="False" Margin="12,0,26,0"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource TextMutedBrush}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Browser.Documents.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
             </Grid>
         </Border>
 

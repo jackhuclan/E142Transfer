@@ -21,13 +21,15 @@
 - 解析信息面板：格式、读取器、网格、有效 die / 良品 / 良率、类别分布、Substrate/Device；
 - die 明细 DataGrid（虚拟化）与解析/运行日志区；
 - 可复用 `WaferMapView` 控件：Canvas 逐格渲染 + Viewbox 自适应，BinCode → 颜色
-  （同类别不同码 = 同色系不同深浅），参考 die 虚线高亮，点选双向绑定，颜色图例浮层。
+  （同类别不同码 = 同色系不同深浅），参考 die 虚线高亮，点选双向绑定，颜色图例浮层；
+- 图上交互：滚轮缩放（以鼠标位置为中心，1.0 适应视口，上限 8×，换文件自动复位），
+  放大后中键/右键拖动平移（左键始终用于点选 die）；
 
 ## 构建 / 运行 / 测试
 
 ```bash
 dotnet build E142Transfer.slnx -c Release          # 0 警告 0 错误
-dotnet test E142Transfer.slnx                       # xunit（Core/ViewModel，15 项）
+dotnet test E142Transfer.slnx                       # xunit（Core/ViewModel，36 项）
 dotnet run --project tests/E142Transfer.SelfTest    # 解析库自检（99 项 OK）
 dotnet run --project src/WaferMapStudio.App         # 启动查看器
 dotnet run --project tools/E142Transfer.RealSampleCheck -- <wafer-map 文件路径>
@@ -42,7 +44,7 @@ src/E142Transfer/                 解析库（Reader/Writer → NeutralWaferMap�
 src/WaferMapStudio.Core/          视觉契约 + 映射器 + BinCode 调色板
 src/WaferMapStudio.ViewModel/     浏览器/文档 VM、IFileDialogService 接口
 src/WaferMapStudio.Rendering/     WaferMapView 可复用控件
-src/WaferMapStudio.App/           WPF 主程序、Host+DI、深色主题
+src/WaferMapStudio.App/           WPF 主程序、Host+DI、亮色主题（Themes/Light.xaml）
 tests/E142Transfer.SelfTest/      解析库自检程序（99 项）
 tests/WaferMapStudio.*.Tests/     xunit 单测
 tools/E142Transfer.RealSampleCheck/  真实样本端到端验收工具
@@ -87,7 +89,7 @@ MapData
 - **坐标对齐防线**：map 与物理 die 的对齐靠 reference die + notch，解析告警
   （单位/方位/行序）一律进 `Issues`，不静默猜测。
 
-详细机制与工程决策见 [docs/](./docs/README.md)（12 篇主题文档）。
+详细机制与工程决策见 [docs/](./docs/README.md)（14 篇主题文档）。
 
 ## 版本
 

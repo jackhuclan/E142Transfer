@@ -24,8 +24,18 @@
     <FontFamily x:Key="MonoFont">Consolas</FontFamily>
 
     <!-- ========== 文本 ========== -->
-    <Style TargetType="TextBlock">
+    <!--
+      注意：这里刻意不设 TextBlock.Foreground。
+      ContentPresenter 呈现字符串内容时会生成一个 TextBlock，隐式样式对它是生效的，
+      而样式 Setter 的优先级高于「从宿主控件继承」——一旦全局写死 Foreground，
+      按钮上的白字（如强调按钮「选择文件…」）就会被改回深色，在蓝底上不可读。
+      颜色统一由最近一层宿主（Window/Button/ListBoxItem/DataGridRow…）的 Foreground 继承下来。
+    -->
+    <Style TargetType="Window">
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+
+    <Style TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
         <Setter Property="FontSize" Value="12.5" />
         <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
@@ -86,8 +96,12 @@
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="#D3DDEA" />
                         </Trigger>
+                        <!-- 禁用态用显式灰阶而不是整体透明度：文字仍要能读清，只是明示不可点 -->
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.45" />
+                            <Setter Property="Background" Value="#F4F7FB" />
+                            <Setter Property="BorderBrush" Value="#E3E9F1" />
+                            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                            <Setter Property="Cursor" Value="Arrow" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -117,8 +131,15 @@
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="#1A43B8" />
                         </Trigger>
+                        <!--
+                          禁用态：蓝底压暗后白字对比度不足，改为浅灰底 + 中灰字（对比度 ≈ 6.6:1），
+                          文字仍可读，同时一眼看出不可点；悬停/按下态保持白字（蓝底足够深）。
+                        -->
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.45" />
+                            <Setter Property="Background" Value="#EDF1F7" />
+                            <Setter Property="BorderBrush" Value="#D8E0EA" />
+                            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                            <Setter Property="Cursor" Value="Arrow" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

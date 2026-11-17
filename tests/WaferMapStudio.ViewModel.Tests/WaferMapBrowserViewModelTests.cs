@@ -111,6 +111,37 @@ public sealed class WaferMapBrowserViewModelTests : IDisposable
     }
 
     [Fact]
+    public void LoadFile_SamePathTwice_ReplacesInsteadOfDuplicating()
+    {
+        var path = WriteCsv("dup.csv", "0,0,1,PASS");
+        var browser = new WaferMapBrowserViewModel(new StubDialog(null));
+
+        browser.LoadFile(path);
+        var first = Assert.Single(browser.Documents);
+
+        browser.LoadFile(path);
+
+        // 「已加载」下拉里不能出现两条同名项，且选中项必须指向最新解析结果
+        var latest = Assert.Single(browser.Documents);
+        Assert.NotSame(first, latest);
+        Assert.Same(latest, browser.SelectedDocument);
+        Assert.Equal(path, latest.SourcePath);
+        Assert.Equal("dup.csv", latest.FileName);
+    }
+
+    [Fact]
+    public void LoadFile_DifferentFiles_KeepsBothEntries()
+    {
+        var browser = new WaferMapBrowserViewModel(new StubDialog(null));
+
+        browser.LoadFile(WriteCsv("a.csv", "0,0,1,PASS"));
+        browser.LoadFile(WriteCsv("b.csv", "0,0,7,FAIL"));
+
+        Assert.Equal(["a.csv", "b.csv"], browser.Documents.Select(d => d.FileName));
+        Assert.Equal("b.csv", browser.SelectedDocument!.FileName);
+    }
+
+    [Fact]
     public void SwitchingDocuments_ClearsSelectedDie()
     {
         var path1 = WriteCsv("a.csv", "0,0,1,PASS");

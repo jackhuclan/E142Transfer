@@ -82,7 +82,7 @@ public sealed partial class WaferMapBrowserViewModel : ObservableObject
             var outcome = importer.Import(path);
             var document = WaferMapDocumentViewModel.Create(outcome);
 
-            Documents.Add(document);
+            ReuseOrAdd(document);
             SelectedDocument = document;
             AddLog("INFO", $"已加载 {document.FileName}：{document.FormatName}，"
                 + $"{document.Grid}，有效 die {document.DieCount}，良品 {document.GoodDieCount}");
@@ -104,4 +104,39 @@ public sealed partial class WaferMapBrowserViewModel : ObservableObject
 
     private void AddLog(string level, string message) =>
         Logs.Add(new LogEntryViewModel(level, message));
+
+    /// <summary>
+    /// 同一文件再次打开时原位替换，而不是追加第二条：
+    /// 「已加载」下拉里出现两个同名项，会让人以为显示内容和当前数据对不上。
+    /// </summary>
+    private void ReuseOrAdd(WaferMapDocumentViewModel document)
+    {
+        var index = IndexOfLoaded(document.SourcePath);
+        if (index >= 0)
+        {
+            Documents[index] = document;
+            return;
+        }
+
+        Documents.Add(document);
+    }
+
+    /// <summary>按完整路径查已加载项（Windows 路径不区分大小写）；路径缺失时一律视为新项。</summary>
+    private int IndexOfLoaded(string sourcePath)
+    {
+        if (string.IsNullOrWhiteSpace(sourcePath))
+        {
+            return -1;
+        }
+
+        for (var i = 0; i < Documents.Count; i++)
+        {
+            if (string.Equals(Documents[i].SourcePath, sourcePath, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
 }

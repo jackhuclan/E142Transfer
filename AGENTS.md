@@ -44,9 +44,9 @@ WaferMapStudio.App ──► WaferMapStudio.Rendering ──► WaferMapStudio.C
 | 项目 | 目标框架 | 职责 | 禁止 |
 |---|---|---|---|
 | `E142Transfer` | `net10.0` | 解析库：E142/G85/SINF/CSV Reader → 中性模型 `NeutralWaferMap`、TransferMap 解析/生成、坐标归一化 | 引用任何 UI/Windows 类型 |
-| `WaferMapStudio.Core` | `net10.0` | 视觉契约（`DieVisual`/`WaferMapVisual`）、`NeutralWaferMap → 视觉模型` 映射器、BinCode→颜色调色板与图例 | 引用任何 UI/Windows 类型 |
+| `WaferMapStudio.Core` | `net10.0` | 视觉契约（`DieVisual`/`WaferMapVisual`）、`NeutralWaferMap → 视觉模型` 映射器、BinCode→颜色调色板与图例、视口缩放/平移几何（`Interaction/ViewportZoom`） | 引用任何 UI/Windows 类型 |
 | `WaferMapStudio.ViewModel` | `net10.0` | 文档/浏览器视图模型、加载与切换编排、解析信息与错误日志 | 引用 `WindowsBase`/WPF（须可跨平台单测）；弹文件对话框（走 `IFileDialogService`） |
-| `WaferMapStudio.Rendering` | `net10.0-windows` | 可复用 `WaferMapView` 控件：Canvas 绘制、Viewbox 自适应、点选、图例浮层 | 引用 App 或 ViewModel；持有业务状态 |
+| `WaferMapStudio.Rendering` | `net10.0-windows` | 可复用 `WaferMapView` 控件：Canvas 绘制、Viewbox 自适应、滚轮缩放/拖动平移、点选、图例浮层 | 引用 App 或 ViewModel；持有业务状态 |
 | `WaferMapStudio.App` | `net10.0-windows` (WinExe) | WPF 主程序、Host+DI 组装、主窗口布局、文件对话框实现 | 承载可复用的领域逻辑（应下沉到 Core/ViewModel） |
 
 **归属判定顺序**（新代码放哪里）：
