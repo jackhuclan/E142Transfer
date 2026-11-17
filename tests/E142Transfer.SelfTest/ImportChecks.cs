@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using E142Transfer.Import;
 using E142Transfer.Import.Abstractions;
 using E142Transfer.Import.Detection;
@@ -342,6 +344,131 @@ public static class ImportChecks
             {
                 Check(true, "非 TSK DAT 内容不会被误识别（不靠扩展名猜）");
             }
+
+            // ---------- 10. KLARF（AOI 缺陷清单：抽样 die 图 + 逐条缺陷） ----------
+            var dies43 = new List<(int X, int Y)>();
+            for (var y = 0; y < 3; y++)
+                for (var x = 0; x < 4; x++)
+                    dies43.Add((x, y));
+
+            var classes3 = new List<(int Id, string Name)> { (0, "Accept"), (1, "Reject"), (2, "BF Defect") };
+            var defects3 = new List<KDef>
+            {
+                new(1, 1, 1, 30, 40, 10, 20, 100, 2),
+                new(2, 2, 0, 50, 60, 8, 8, 40, 1),
+                new(3, 3, 2, 20, 80, 12, 12, 90, 2),
+            };
+
+            foreach (var id in new[] { 1, 2, 3 })
+                File.WriteAllBytes(Path.Combine(dir, $"img_{id}_1.jpg"), []);
+
+            var klarfGood = Path.Combine(dir, "aoi.klarf");
+            File.WriteAllText(klarfGood, RenderKlarf(dies43, defects3, classes3, 12, 3, 3, 1250));
+
+            var klarfProbe = importer.Probe(klarfGood);
+            Check(klarfProbe.Format == WaferMapFormat.Klarf && klarfProbe.Score >= 0.9,
+                $"KLARF 自动识别（置信度 {klarfProbe.Score:F2}）");
+
+            var km = importer.ImportMap(klarfGood);
+            Check(km.SubstrateId == "WAFER-01" && km.LotId == "LOT-KLARF" && km.DeviceId == "UBM",
+                "KLARF 头部晶圆/批次/产品字段解析");
+            Check(km.Layout is { Columns: 4, Rows: 3, OriginLocation: OriginLocation.LowerLeft,
+                   AxisDirection: AxisDirection.UpRight },
+                "KLARF 网格 4x3 + LowerLeft/UpRight（XINDEX/YINDEX 自 DieOrigin 递增）");
+            Check(Math.Abs(km.DieSizeX - 100) < 1e-9 && Math.Abs(km.DieSizeY - 200) < 1e-9,
+                "KLARF 无独立 die 尺寸字段，按 DiePitch 填入 DieSize");
+            Check(km.Dies.Count == 12, "KLARF die 图 12 颗全部写入");
+            Check(km.GoodDies.Count() == 9 && km.Dies.Values.Count(d => d.Class == NeutralBinClass.Fail) == 3,
+                "KLARF 有缺陷 die → Fail、无缺陷 → Pass（9 良 3 败）");
+            Check(km.Defects.Count == 3, "KLARF 缺陷明细全部保留（不只留 die 级 pass/fail）");
+
+            var kd1 = km.Defects.First(d => d.DefectId == 1);
+            Check(kd1.DieX == 1 && kd1.DieY == 1 &&
+                  Math.Abs(kd1.X - 30) < 1e-6 && Math.Abs(kd1.Y - 140) < 1e-6,
+                "KLARF 缺陷绝对坐标 = DieOrigin + 索引×pitch + XREL/YREL");
+            Check(kd1.ClassName == "BF Defect" && km.Defects.First(d => d.DefectId == 2).ClassName == "Reject",
+                "KLARF 缺陷类号按 ClassLookup 取名");
+            Check(kd1.ImageFile == "img_1_1.jpg", "KLARF 缺陷关联到 TiffFileName 复核图");
+            Check(km.Issues.Any(i => i.Code == "KLARF_NO_DIE_BIN") &&
+                  km.Issues.Any(i => i.Code == "KLARF_EXTRA_COLUMNS"),
+                "KLARF 明示 die bin 推导口径 + 多余列按字段名忽略");
+            Check(!km.Issues.Any(i => i.Code is "KLARF_INDEX_MISMATCH" or "KLARF_REL_MISMATCH" or
+                      "KLARF_GEOMETRY_INCONSISTENT" or "KLARF_SUMMARY_DEFECT" or "KLARF_SUMMARY_DEFDIE" or
+                      "KLARF_SUMMARY_NDIE" or "KLARF_DENSITY_MISMATCH" or "KLARF_CLASS_GAP" or
+                      "KLARF_ORPHAN_DEFECT" or "KLARF_IMAGE_MISSING" or "KLARF_MULTI_DEFECT_DIE"),
+                "KLARF 自洽文件不产生结构性告警");
+
+            var klarfProjected = NeutralMapProjector.ToDieResults(km);
+            Check(klarfProjected.Count == 12 && klarfProjected.Count(d => d.Bin?.Quality == BinQuality.Fail) == 3,
+                "KLARF 投影为 DieResult，3 颗缺陷 die 为 Fail");
+
+            // 坐标与 die 索引不自洽：die 归属不可信，必须告警
+            var klarfBadIndex = Path.Combine(dir, "bad-index.klarf");
+            File.WriteAllText(klarfBadIndex, RenderKlarf(dies43,
+                [new KDef(1, 1, 1, 30, 40, 10, 20, 100, 2, XShift: 1)], classes3, 12, 1, 1, 1250));
+            var badIndexMap = importer.ImportMap(klarfBadIndex);
+            Check(badIndexMap.Issues.Any(i => i.Code == "KLARF_INDEX_MISMATCH") &&
+                  badIndexMap.Issues.Any(i => i.Code == "KLARF_REL_MISMATCH"),
+                "KLARF X/Y 与 XINDEX/YINDEX 不自洽时告警（不静默采信）");
+
+            // 缺陷落在 die 图未声明的格位：归属错位
+            var klarfOrphan = Path.Combine(dir, "orphan.klarf");
+            File.WriteAllText(klarfOrphan, RenderKlarf(dies43,
+                [new KDef(1, 9, 9, 10, 10, 10, 10, 50, 1)], classes3, 12, 1, 1, 1250));
+            var orphanMap = importer.ImportMap(klarfOrphan);
+            Check(orphanMap.Issues.Any(i => i.Code == "KLARF_ORPHAN_DEFECT") &&
+                  orphanMap.Dies.Count == 13,
+                "KLARF 缺陷落在未声明 die 上时告警，并按缺陷位补一颗 Fail die");
+
+            // SummaryList 三大计数 + 密度对账
+            var klarfBadSummary = Path.Combine(dir, "bad-summary.klarf");
+            File.WriteAllText(klarfBadSummary, RenderKlarf(dies43, defects3, classes3,
+                declaredDie: 12, declaredDefect: 9, declaredDefDie: 7, density: 999));
+            var badSummaryMap = importer.ImportMap(klarfBadSummary);
+            Check(badSummaryMap.Issues.Any(i => i.Code == "KLARF_SUMMARY_DEFECT") &&
+                  badSummaryMap.Issues.Any(i => i.Code == "KLARF_SUMMARY_DEFDIE") &&
+                  badSummaryMap.Issues.Any(i => i.Code == "KLARF_DENSITY_MISMATCH"),
+                "KLARF SummaryList 计数与密度口径不符时逐项告警");
+
+            // 类表有空洞 + 缺陷类号未定义
+            var klarfClassGap = Path.Combine(dir, "class-gap.klarf");
+            File.WriteAllText(klarfClassGap, RenderKlarf(dies43, defects3,
+                [(0, "Accept"), (1, "Reject"), (3, "BF Defect")], 12, 3, 3, 1250, declaredClasses: 5));
+            var classGapMap = importer.ImportMap(klarfClassGap);
+            Check(classGapMap.Issues.Any(i => i.Code == "KLARF_CLASS_GAP") &&
+                  classGapMap.Issues.Any(i => i.Code == "KLARF_UNDEFINED_CLASS"),
+                "KLARF ClassLookup 有空洞且缺陷类号落在空洞内时告警");
+
+            // 外接框与面积矛盾（填充率 > 100%）
+            var klarfGeom = Path.Combine(dir, "geometry.klarf");
+            File.WriteAllText(klarfGeom, RenderKlarf(dies43,
+                [new KDef(1, 1, 1, 10, 20, 10, 10, 500, 1)], classes3, 12, 1, 1, 1250));
+            Check(importer.ImportMap(klarfGeom).Issues.Any(i => i.Code == "KLARF_GEOMETRY_INCONSISTENT"),
+                "KLARF DEFECTAREA 与外接框矛盾时告警（面积阈值筛片前须确认口径）");
+
+            // 一块多记录：同一 TiffFileName 下两条缺陷
+            var klarfMulti = Path.Combine(dir, "multi.klarf");
+            File.WriteAllText(klarfMulti, RenderKlarf(dies43,
+                [new KDef(1, 1, 1, 10, 20, 10, 10, 50, 1, Group: 0),
+                 new KDef(2, 1, 1, 40, 20, 10, 10, 50, 1, Group: 0)], classes3, 12, 2, 1, 1250));
+            var multiMap = importer.ImportMap(klarfMulti);
+            Check(multiMap.Issues.Any(i => i.Code == "KLARF_MULTI_RECORD_BLOCK") &&
+                  multiMap.Issues.Any(i => i.Code == "KLARF_MULTI_DEFECT_DIE") &&
+                  multiMap.Defects.Count == 2,
+                "KLARF 一个 DefectList 块含多条缺陷时告警，且两条都保留");
+
+            // 扩展名 .klarf 但内容不是 KLARF：必须拒绝识别
+            var notKlarf = Path.Combine(dir, "plain.klarf");
+            File.WriteAllText(notKlarf, "this is not a klarf file");
+            try
+            {
+                importer.Import(notKlarf);
+                Check(false, "非 KLARF 的 .klarf 文件应抛异常");
+            }
+            catch (UnsupportedWaferMapFormatException)
+            {
+                Check(true, "非 KLARF 内容不会被误识别（不靠扩展名猜）");
+            }
         }
         finally
         {
@@ -353,6 +480,104 @@ public static class ImportChecks
     {
         if (!condition) throw new InvalidOperationException("自检失败: " + message);
         Console.WriteLine($"  OK  {message}");
+    }
+
+    /// <summary>合成 KLARF 的一条缺陷：X/Y 由 DieOrigin + 索引×DiePitch + XREL/YREL 推出。</summary>
+    private sealed record KDef(
+        int Id, int Xi, int Yi, double XRel, double YRel,
+        double SizeX, double SizeY, double Area, int Class,
+        int Group = -1, int XShift = 0);
+
+    /// <summary>
+    /// 构造一份最小 KLARF 样本：头部 + ClassLookup + SampleDieMap + SampleTestPlan
+    /// + 每缺陷一个 TiffFileName/DefectList 块 + SummaryList。
+    /// 缺陷记录刻意写成 21 列（DefectRecordSpec 声明 19 个字段 + 2 列尾巴），
+    /// 与真实 XCluster 样本一致，用来验证"按字段名取值"而非按列位置。
+    /// </summary>
+    private static string RenderKlarf(
+        IReadOnlyList<(int X, int Y)> dies,
+        IReadOnlyList<KDef> defects,
+        IReadOnlyList<(int Id, string Name)> classes,
+        int declaredDie,
+        int declaredDefect,
+        int declaredDefDie,
+        double density,
+        int? declaredClasses = null)
+    {
+        const double originX = -100, originY = -100, pitchX = 100, pitchY = 200;
+        var sb = new StringBuilder();
+        sb.AppendLine("FileVersion 1 7;");
+        sb.AppendLine("FileTimestamp 05-14-2023 01:55:13;");
+        sb.AppendLine("TiffSpec 6.0 NA R;");
+        sb.AppendLine("InspectionStationID \"RudolphTechnologies\" \"XCluster\" \"AOI-30\";");
+        sb.AppendLine("SampleType WAFER;");
+        sb.AppendLine("ResultTimestamp 05-14-2023 01:55:12;");
+        sb.AppendLine("LotID \"LOT-KLARF\";");
+        sb.AppendLine("SampleSize 1 200;");
+        sb.AppendLine("SetupID \"SETUP-1\" 08-17-2022 09:21:05;");
+        sb.AppendLine("DeviceID \"UBM\";");
+        sb.AppendLine("StepID \"STEP-1\";");
+        sb.AppendLine("SampleOrientationMarkType NOTCH;");
+        sb.AppendLine("OrientationMarkLocation DOWN;");
+        sb.AppendLine($"DiePitch {F(pitchX)} {F(pitchY)};");
+        sb.AppendLine($"DieOrigin {F(originX)} {F(originY)};");
+        sb.AppendLine("WaferID \"WAFER-01\";");
+        sb.AppendLine("Slot 1;");
+        sb.AppendLine("SampleCenterLocation 0.000 0.000;");
+
+        sb.AppendLine($"ClassLookup {declaredClasses ?? classes.Count}");
+        foreach (var (id, name) in classes) sb.AppendLine($"{id} \"{name}\"");
+
+        sb.AppendLine($"SampleDieMap {dies.Count}");
+        for (var i = 0; i < dies.Count; i++)
+            sb.AppendLine(i == dies.Count - 1 ? $"{dies[i].X} {dies[i].Y};" : $"{dies[i].X} {dies[i].Y}");
+
+        sb.AppendLine("InspectionTest 1;");
+        sb.AppendLine($"SampleTestPlan {dies.Count}");
+        for (var i = 0; i < dies.Count; i++)
+            sb.AppendLine(i == dies.Count - 1 ? $"{dies[i].X} {dies[i].Y};" : $"{dies[i].X} {dies[i].Y}");
+
+        sb.AppendLine($"AreaPerTest {F(dies.Count * pitchX * pitchY)};");
+        sb.AppendLine("DefectRecordSpec 19 DEFECTID X Y XREL YREL XINDEX YINDEX XSIZE YSIZE DEFECTAREA " +
+                      "DSIZE CLASSNUMBER TEST CLUSTERNUMBER ROUGHBINNUMBER FINEBINNUMBER REVIEWSAMPLE " +
+                      "IMAGECOUNT IMAGELIST;");
+
+        for (var i = 0; i < defects.Count;)
+        {
+            var group = defects[i].Group;
+            var block = new List<KDef> { defects[i] };
+            i++;
+            while (group >= 0 && i < defects.Count && defects[i].Group == group)
+            {
+                block.Add(defects[i]);
+                i++;
+            }
+
+            sb.AppendLine($"TiffFileName img_{block[0].Id}_1.jpg;");
+            sb.AppendLine("DefectList");
+            for (var k = 0; k < block.Count; k++)
+            {
+                var d = block[k];
+                var x = originX + (d.Xi + d.XShift) * pitchX + d.XRel;
+                var y = originY + d.Yi * pitchY + d.YRel;
+                // DefectRecordSpec 19 个字段（…ROUGHINNUMBER FINEBINNUMBER REVIEWSAMPLE IMAGECOUNT IMAGELIST）
+                // + 真实样本的 2 列尾巴 "1 0"
+                var row = string.Join(' ',
+                    d.Id, F(x), F(y), F(d.XRel), F(d.YRel), d.Xi, d.Yi,
+                    F(d.SizeX), F(d.SizeY), F(d.Area), F(Math.Sqrt(d.Area)),
+                    d.Class, 1, 0, d.Class, 0, 1, 1, 1, 1, 0);
+                sb.AppendLine(k == block.Count - 1 ? row + ";" : row);
+            }
+        }
+
+        sb.AppendLine("SummarySpec 5 TESTNO NDEFECT DEFDENSITY NDIE NDEFDIE; ");
+        sb.AppendLine("SummaryList");
+        sb.AppendLine($"1 {declaredDefect} {density} {declaredDie} {declaredDefDie};");
+        sb.AppendLine("WaferStatus P;");
+        sb.Append("EndOfFile;");
+        return sb.ToString();
+
+        static string F(double value) => value.ToString("0.000", CultureInfo.InvariantCulture);
     }
 
     /// <summary>

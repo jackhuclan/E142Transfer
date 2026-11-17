@@ -176,25 +176,35 @@ TiffFileName TR7U5303.05_Ceres_256993787_1.jpg;
 
 ## 落到本工程
 
-KLARF **不能**用现有 `NeutralDie.BinCode` 表达。要接它，建议给中性模型加一层缺陷集合：
+KLARF **不能**用 `NeutralDie.BinCode` 单独表达。中性模型已按下面的结构扩展（`NeutralDefect`，
+挂在 `NeutralWaferMap.Defects` 上，与 die 平级而不是塞进 die，因为同一颗 die 可以有多条缺陷）：
 
 ```
-NeutralDie
+NeutralWaferMap
+ ├─ Dies:   (X, Y) → NeutralDie{ BinCode, Class }
  └─ Defects: List<NeutralDefect>
-      ├─ RelX / RelY        // die 内偏移（XREL/YREL）
-      ├─ ClassNumber        // 查 CLASS LOOKUP
-      ├─ SizeX / SizeY
-      └─ ImageRefs          // 位图路径
+      ├─ DieX / DieY            // 所在 die 的阵列索引（XINDEX/YINDEX）
+      ├─ X / Y                  // 绝对坐标
+      ├─ XRel / YRel            // die 内偏移
+      ├─ SizeX / SizeY / Area / Size
+      ├─ ClassNumber / ClassName // 查 ClassLookup
+      └─ ImageFile               // 复核图路径
 ```
 
-转成 E142 时再按 die 聚合成结果级 bin：
+已实现：`src/E142Transfer/Import/Readers/KlarfMapReader.cs`（`WaferMapFormat.Klarf`），
+真实样本逐段解析与字段对照见 [14 KLARF 真实样本解析](./14-KLARF-AOI缺陷清单样本解析.md)。
 
-- 有缺陷 → Fail（bin 取第一条缺陷的 class）；
-- `SampleTestPlan` 里列出但无缺陷 → Pass；
-- 不在测试计划内 → Null；
+转成 E142 时再按 die 聚合成结果级 bin（本工程的默认口径）：
+
+- 有缺陷 → Fail（die 级 bin 记 `1`，缺陷类别留在 `NeutralDefect.ClassName`，不塞进 die bin）；
+- `SampleDieMap` / `SampleTestPlan` 里列出但无缺陷 → Pass（bin `0`）；
+- 不在 die 图内 → 不建 die（KLARF 用"格位缺失"表达晶圆外形，没有 Null 码）；
 - 超过 256 类时先合并映射，并预留 Null / Pass。
 
 这正好对应 PL 检测上位机的三映射分工：**EL / PL 走 E142 / SINF 结果级链路，AOI 走 KLARF 缺陷级链路**，最后在 `NeutralWaferMap` 汇合。新增 Reader 的步骤见 [09 工程实现](./09-工程实现-E142Transfer适配器.md) 的「新增一种格式」。
+
+> 注意：**KLARF 里的 die 级 pass/fail 是推导值，不是官方 disposition**。`KlarfMapReader` 恒定发
+> `KLARF_NO_DIE_BIN` 告警，避免把 AOI 的缺陷抽查结果误当最终良率。
 
 ## 资料来源
 

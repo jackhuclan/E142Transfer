@@ -51,6 +51,45 @@ public readonly record struct NeutralDie(int X, int Y)
     public bool IsDie => Class != NeutralBinClass.Null;
 }
 
+/// <summary>
+/// 一条缺陷记录。KLARF 这类"缺陷清单"格式的 die 级类别是由缺陷聚合出来的，
+/// 原始缺陷必须保留——否则 die 只能得到一个二值 pass/fail，丢失类别、尺寸和复核图。
+/// </summary>
+public sealed record NeutralDefect
+{
+    public int DefectId { get; init; }
+
+    /// <summary>缺陷所在 die 的阵列坐标（KLARF 的 XINDEX/YINDEX，0 基）。</summary>
+    public int DieX { get; init; }
+    public int DieY { get; init; }
+
+    /// <summary>缺陷中心绝对坐标（µm，原点为晶圆中心）。</summary>
+    public double X { get; init; }
+    public double Y { get; init; }
+
+    /// <summary>缺陷中心相对所在 die 原点的偏移（µm，0..DiePitch）。</summary>
+    public double XRel { get; init; }
+    public double YRel { get; init; }
+
+    /// <summary>缺陷外接框尺寸（µm）。</summary>
+    public double SizeX { get; init; }
+    public double SizeY { get; init; }
+
+    /// <summary>缺陷面积（µm²）。各厂口径不同，不保证等于 SizeX×SizeY。</summary>
+    public double Area { get; init; }
+
+    /// <summary>等效直径（µm），原样保留，勿自行换算。</summary>
+    public double Size { get; init; }
+
+    public int ClassNumber { get; init; }
+    public string ClassName { get; init; } = string.Empty;
+    public int TestNumber { get; init; }
+    public int ClusterNumber { get; init; }
+
+    /// <summary>复核图片文件名（可为空）。</summary>
+    public string ImageFile { get; init; } = string.Empty;
+}
+
 /// <summary>一条坐标转移记录（E142 TransferMap 的 &lt;T&gt; 中性化）。</summary>
 public readonly record struct NeutralTransfer(
     int FX, int FY, int TX, int TY,
@@ -110,6 +149,11 @@ public sealed class NeutralWaferMap
     private readonly List<NeutralTransfer> _transfers = [];
     public IReadOnlyList<NeutralTransfer> Transfers => _transfers;
 
+    private readonly List<NeutralDefect> _defects = [];
+
+    /// <summary>缺陷明细（仅缺陷清单类格式会填充，如 KLARF）。</summary>
+    public IReadOnlyList<NeutralDefect> Defects => _defects;
+
     private readonly List<ImportIssue> _issues = [];
     public IReadOnlyList<ImportIssue> Issues => _issues;
 
@@ -118,6 +162,8 @@ public sealed class NeutralWaferMap
     public void AddDie(NeutralDie die) => _dies[(die.X, die.Y)] = die;
 
     public void AddTransfer(NeutralTransfer transfer) => _transfers.Add(transfer);
+
+    public void AddDefect(NeutralDefect defect) => _defects.Add(defect);
 
     public void AddIssue(string code, string message, bool isWarning = true) =>
         _issues.Add(new ImportIssue(code, message, isWarning));
