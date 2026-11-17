@@ -35,6 +35,10 @@ public sealed class LegendItemView
 /// 交互：滚轮缩放（以鼠标位置为锚点，1.0 = 适应视口，上限见 <see cref="MaxZoom"/>）、
 /// 放大后中键/右键拖动平移、左键点选 die。几何计算在
 /// <see cref="ViewportZoom"/>（Core，可单测），本类只负责把结果写进变换。
+///
+/// 网格：列数/行数取数据本身的 <see cref="WaferMapVisual.Columns"/>/<see cref="WaferMapVisual.Rows"/>，
+/// 两轴格宽/格高由 <see cref="GridMetrics"/> 按 die 步距之比换算——X 与 Y 共用同一套
+/// 像素/µm 比例，因此非正方形 die 不会被画成正方形，圆形晶圆也不会被压成椭圆。
 /// </summary>
 public partial class WaferMapView : UserControl
 {
@@ -65,7 +69,11 @@ public partial class WaferMapView : UserControl
         MapViewbox.SizeChanged += OnViewboxSizeChanged;
     }
 
-    /// <summary>单格边长（设备无关像素）。die 间留 1px 间隙便于区分相邻同色格。</summary>
+    /// <summary>
+    /// 基准格宽（设备无关像素）。X 方向直接用它，Y 方向按 die pitch 比例换算
+    /// （见 <see cref="GridMetrics"/>），因此同一个值在 55×125 / 238×159 这类
+    /// 长宽比悬殊的网格上也能得到一致的物理比例。
+    /// </summary>
     public static readonly DependencyProperty CellSizeProperty = DependencyProperty.Register(
         nameof(CellSize), typeof(double), typeof(WaferMapView),
         new PropertyMetadata(16.0, OnRenderInputChanged));
@@ -168,10 +176,21 @@ public partial class WaferMapView : UserControl
             return;
         }
 
-        var cell = Math.Max(CellSize, 2);
-        MapCanvas.Width = map.Columns * cell;
-        MapCanvas.Height = map.Rows * cell;
+        // 两轴共用同一套换算：格宽/格高之比 = die 步距之比，晶圆轮廓才不会被压成椭圆
+        var grid = GridMetrics.Compute(map.Columns, map.Rows, map.StepSizeX, map.StepSizeY, CellSize);
+
+        MapCanvas.Width = grid.Width;
+        MapCanvas.Height = grid.Height;
         MapCanvas.ClipToBounds = true;
+
+        var cellW = grid.CellWidth;
+        var cellH = grid.CellHeight;
+        // die 间留缝隙便于区分相邻同色格（缝隙对称内缩）；极端窄格下不出现 0/负宽度
+        var gapX = Math.Min(1.0, cellW * 0.25);
+        var gapY = Math.Min(1.0, cellH * 0.25);
+        var rectW = Math.Max(cellW - gapX, 0.1);
+        var rectH = Math.Max(cellH - gapY, 0.1);
+        var radius = Math.Min(1.5, Math.Min(rectW, rectH) / 3);
 
         var palette = EffectivePalette;
         var nullBrush = FrozenBrush(BinColorPalette.CategoryColor(DieCategory.Null).ToHex());
@@ -180,10 +199,10 @@ public partial class WaferMapView : UserControl
         {
             var rect = new Rectangle
             {
-                Width = cell - 1,
-                Height = cell - 1,
-                RadiusX = 1.5,
-                RadiusY = 1.5,
+                Width = rectW,
+                Height = rectH,
+                RadiusX = radius,
+                RadiusY = radius,
                 Fill = die.Category == DieCategory.Null
                     ? nullBrush
                     : FrozenBrush(palette.ColorOf(die).ToHex()),
@@ -193,12 +212,12 @@ public partial class WaferMapView : UserControl
                 ToolTip = BuildTooltip(die),
             };
 
-            Canvas.SetLeft(rect, die.Col * cell + 0.5);
-            Canvas.SetTop(rect, die.Row * cell + 0.5);
+            Canvas.SetLeft(rect, die.Col * cellW + gapX / 2);
+            Canvas.SetTop(rect, die.Row * cellH + gapY / 2);
             MapCanvas.Children.Add(rect);
         }
 
-        MarkReferenceDie(map, cell);
+        MarkReferenceDie(map, cellW, cellH);
         RebuildLegend(map, palette);
         UpdateLegendVisibility();
 
@@ -209,7 +228,7 @@ public partial class WaferMapView : UserControl
         }
     }
 
-    private void MarkReferenceDie(WaferMapVisual map, double cell)
+    private void MarkReferenceDie(WaferMapVisual map, double cellW, double cellH)
     {
         if (map.ReferenceDie is not { } reference)
         {
@@ -218,16 +237,16 @@ public partial class WaferMapView : UserControl
 
         var rect = new Rectangle
         {
-            Width = cell,
-            Height = cell,
+            Width = cellW,
+            Height = cellH,
             Fill = Brushes.Transparent,
             Stroke = _accentBrush,
             StrokeThickness = 2,
             StrokeDashArray = [2, 2],
             IsHitTestVisible = false,
         };
-        Canvas.SetLeft(rect, reference.Col * cell);
-        Canvas.SetTop(rect, reference.Row * cell);
+        Canvas.SetLeft(rect, reference.Col * cellW);
+        Canvas.SetTop(rect, reference.Row * cellH);
         MapCanvas.Children.Add(rect);
     }
 

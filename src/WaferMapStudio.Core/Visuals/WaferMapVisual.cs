@@ -13,6 +13,16 @@ public sealed class WaferMapVisual
     public required string SourcePath { get; init; }
     public required int Columns { get; init; }
     public required int Rows { get; init; }
+
+    /// <summary>
+    /// die 步距（µm）。两轴可不等（如 3600×1580、800×1170）：
+    /// 渲染层据此按 <see cref="GridMetrics"/> 分别算格宽/格高，保证晶圆轮廓不被拉成椭圆。
+    /// 上游未提供时为 0，退化为正方形格子。
+    /// </summary>
+    public double StepSizeX { get; init; }
+
+    /// <inheritdoc cref="StepSizeX"/>
+    public double StepSizeY { get; init; }
     public string SubstrateId { get; init; } = string.Empty;
     public string DeviceId { get; init; } = string.Empty;
     public string LotId { get; init; } = string.Empty;
