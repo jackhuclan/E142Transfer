@@ -141,11 +141,16 @@ public static class ImportChecks
 
             // ---------- 7. 3 Digit SINF 变体 ----------
             var sinf3 = Path.Combine(dir, "three.sinf");
-            File.WriteAllLines(sinf3, ["ROWCT:1", "COLCT:3", "BCEQU:000", "RowData:___ 000 001"]);
+            File.WriteAllLines(sinf3,
+                ["ROWCT:1", "COLCT:4", "BCEQU:001", "RowData:___ 001 000 @@@"]);
             var threeOutcome = importer.Import(sinf3);
             Check(threeOutcome.Map.Issues.Any(i => i.Code == "SINF_3DIGIT"), "3 Digit SINF 变体告警");
-            Check(threeOutcome.Map.GetDie(1, 0)?.Class == NeutralBinClass.Pass, "3 Digit 000 ∈ BCEQU → Pass");
+            Check(threeOutcome.Map.GetDie(1, 0)?.Class == NeutralBinClass.Pass, "3 Digit 001 ∈ BCEQU → Pass");
             Check(threeOutcome.Map.GetDie(0, 0)?.Class == NeutralBinClass.Null, "3 Digit ___ → Null");
+            Check(threeOutcome.Map.GetDie(2, 0)?.Class == NeutralBinClass.Fail, "3 Digit 000 → Fail");
+            Check(threeOutcome.Map.GetDie(3, 0)?.Class == NeutralBinClass.Skip,
+                "3 Digit @@@ → Skip（真实样本 Amkor/G85 用三位未检测码）");
+            Check(threeOutcome.Map.Dies.Count == 4, "3 Digit 含 @@@ 的行不再被整行跳过");
         }
         finally
         {

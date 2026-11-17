@@ -192,7 +192,7 @@ public sealed class SinfMapReader : IWaferMapReader
     private static bool IsRecognizedToken(string token)
     {
         var t = token.Trim();
-        return t is "__" or "___" or "@@" or "FF" or "FD" or "FE"
+        return t is "__" or "___" or "@@" or "@@@" or "FF" or "FD" or "FE"
             || (t.Length == 2 && t.All(Uri.IsHexDigit))
             || (t.Length == 3 && t.All(char.IsDigit));
     }
@@ -205,7 +205,7 @@ public sealed class SinfMapReader : IWaferMapReader
     {
         var t = token.Trim().ToUpperInvariant();
         if (t is "__" or "___") return NeutralBinClass.Null;
-        if (t == "@@") return NeutralBinClass.Skip;
+        if (t is "@@" or "@@@") return NeutralBinClass.Skip;
         if (t == "FF") return NeutralBinClass.Reference;
         if (t is "FD" or "FE") return NeutralBinClass.Edge;
         if (goodBins.Contains(t)) return NeutralBinClass.Pass;
