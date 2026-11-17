@@ -111,6 +111,41 @@ public static class ImportChecks
             {
                 Check(true, "未知格式明确抛异常");
             }
+
+            // ---------- 6. SINF 标准 hex：BCEQU + 特殊码 + 1-based 参考坐标 ----------
+            var sinfStd = Path.Combine(dir, "standard.sinf");
+            File.WriteAllLines(sinfStd,
+            [
+                "DEVICE:DEMO2", "LOT:LOT-X", "WAFER:11", "FNLOC:180",
+                "ROWCT:2", "COLCT:4", "BCEQU:01,02", "REFPX:2", "REFPY:1",
+                "DUTMS:mm", "XDIES:2.945", "YDIES:2.945", "DIECT:8",
+                "RowData:__ 01 0B FF",
+                "RowData:02 @@ FD 03",
+            ]);
+            var stdOutcome = importer.Import(sinfStd);
+            Check(stdOutcome.Format == WaferMapFormat.Sinf, "SINF 标准 hex 自动识别");
+            Check(stdOutcome.Map.DeviceId == "DEMO2", "SINF DEVICE 字段解析");
+            Check(stdOutcome.Map.Layout is { Columns: 4, Rows: 2, StepSizeX: 2.945 },
+                "SINF pitch 与网格解析");
+            Check(stdOutcome.Map.Dies.Count == 8, "SINF 标准 die 数 = 8");
+            Check(stdOutcome.Map.GetDie(1, 0)?.Class == NeutralBinClass.Pass, "SINF 01 ∈ BCEQU → Pass");
+            Check(stdOutcome.Map.GetDie(3, 0)?.Class == NeutralBinClass.Reference, "SINF FF → Reference");
+            Check(stdOutcome.Map.GetDie(0, 0)?.Class == NeutralBinClass.Null, "SINF __ → Null");
+            Check(stdOutcome.Map.GetDie(1, 1)?.Class == NeutralBinClass.Skip, "SINF @@ → Skip");
+            Check(stdOutcome.Map.GetDie(2, 1)?.Class == NeutralBinClass.Edge, "SINF FD → Edge");
+            Check(stdOutcome.Map.GetDie(3, 1)?.Class == NeutralBinClass.Fail, "SINF 03 未在 BCEQU → Fail");
+            Check(stdOutcome.Map.GoodDies.Count() == 2, "SINF 只拾取 BCEQU 声明的 2 颗 Pass");
+            Check(stdOutcome.Map.Issues.Any(i => i.Code == "SINF_REFERENCE_1BASED"),
+                "SINF 1-based 参考坐标修正告警");
+            Check(stdOutcome.Map.Issues.Any(i => i.Code == "SINF_FNLOC"), "SINF FNLOC 告警");
+
+            // ---------- 7. 3 Digit SINF 变体 ----------
+            var sinf3 = Path.Combine(dir, "three.sinf");
+            File.WriteAllLines(sinf3, ["ROWCT:1", "COLCT:3", "BCEQU:000", "RowData:___ 000 001"]);
+            var threeOutcome = importer.Import(sinf3);
+            Check(threeOutcome.Map.Issues.Any(i => i.Code == "SINF_3DIGIT"), "3 Digit SINF 变体告警");
+            Check(threeOutcome.Map.GetDie(1, 0)?.Class == NeutralBinClass.Pass, "3 Digit 000 ∈ BCEQU → Pass");
+            Check(threeOutcome.Map.GetDie(0, 0)?.Class == NeutralBinClass.Null, "3 Digit ___ → Null");
         }
         finally
         {

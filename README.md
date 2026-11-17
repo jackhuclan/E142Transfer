@@ -80,7 +80,7 @@ E142Transfer/Import/
 │   └─ WaferMapFormatDetector.cs# 扩展名 + 文件头嗅探，置信度打分选 Reader
 ├─ Readers/
 │   ├─ XyBinCsvReader.cs        # CSV/XYBin：x,y,bin（可带 class 第 4 列）
-│   ├─ SinfMapReader.cs         # SINF：KEY:VALUE 头 + bin 网格
+│   ├─ SinfMapReader.cs         # SINF：BCEQU / hex+3-Digit bin / 特殊码 / 1-based 修正
 │   └─ E142MapReader.cs         # E142：复用 Parser + 补 bin 阵列解析
 ├─ Writers/
 │   └─ CsvXyBinWriter.cs        # 中性 map → x,y,bin CSV
@@ -119,11 +119,16 @@ foreach (var issue in outcome.Map.Issues) log.Warn(issue.Message);  // 解析告
 
 ### 自检覆盖
 
-`ImportChecks.Run()` 已验证：CSV 格式识别与负坐标平移、CSV 写回闭环、SINF 头字段与网格、E142 的 bin 阵列 + BinCode 表 + TransferMap、投影到 `DieResult`、未知格式明确报错。
+`ImportChecks.Run()` 的 32 项已验证：CSV 格式识别与负坐标平移、CSV 写回闭环、SINF 头字段与网格、SINF `BCEQU` 良品判定与 `FF/FD/FE/@@/__` 特殊码、SINF 1-based 参考坐标修正与 3-Digit 变体、E142 的 bin 阵列 + BinCode 表 + TransferMap、投影到 `DieResult`、未知格式明确报错。
+
+## 知识文档
+
+`docs/` 下有 11 篇按主题拆分的知识文档（点墨 → bin 编码 → E142 → TransferMap/KGD → 格式生态 → 工程实现 → SINF/KLARF 详解），入口见 [docs/README.md](./docs/README.md)。
 
 ## 待办 / 可按厂内规范扩展
 
 - `BinQuality` 当前只覆盖常见字符串，厂内自定义值可在 `E142EnumParser.ParseBinQuality` 增补。
 - `MapType=Row/Column` 的 bin 阵列尚未解析（会写入 `ImportIssue` 提示）；2DArray / Array / Coordinate 已支持。
-- SINF 方言差异大，`SinfMapReader` 目前只覆盖常见形态，接到厂内样本后需校准行序与原点。
+- SINF `BCEQU`、hex/3-Digit bin、`FF/FD/FE/@@/__` 特殊码与 1-based 参考坐标已支持；**行序与 flat/notch 方向仍需按厂内样本校准**（写入 `ImportIssue`，不自动猜测）。详见 [docs/10](./docs/10-SINF格式详解.md)。
+- KLARF 是缺陷级数据，接它需给中性模型扩展缺陷集合（含 `XREL/YREL` 内部坐标）。详见 [docs/11](./docs/11-KLARF格式详解.md)。
 - GEM 接口传输（E142.2 的 S14F1 消息）不在本骨架范围，属设备通信层。

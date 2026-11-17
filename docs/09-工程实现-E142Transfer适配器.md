@@ -37,7 +37,7 @@ E142Transfer/Import/
 │   └─ WaferMapFormatDetector.cs# 扩展名 + 文件头嗅探，置信度打分
 ├─ Readers/
 │   ├─ XyBinCsvReader.cs        # CSV/XYBin：x,y,bin（可带 class 第4列）
-│   ├─ SinfMapReader.cs         # SINF：KEY:VALUE 头 + bin 网格
+│   ├─ SinfMapReader.cs         # SINF：BCEQU / hex+3-Digit bin / 特殊码 / 1-based 修正
 │   └─ E142MapReader.cs         # E142：复用 Parser + bin 阵列解析
 ├─ Writers/
 │   └─ CsvXyBinWriter.cs        # 中性 map → x,y,bin CSV
@@ -93,7 +93,7 @@ dotnet run --project E142Transfer.SelfTest/E142Transfer.SelfTest.csproj
 自检覆盖：
 
 - **阶段一（7 项）**：写入→解析闭环逐条校验、3D 堆叠反查、坐标归一化往返、BinCode 定义解析、追加 overlay。
-- **阶段二（17 项）**：CSV 自动识别与负坐标平移、CSV 写回再导入闭环、SINF 头字段与网格、E142 bin 阵列 + BinCode 表 + TransferMap、投影到 `DieResult.Transfers`、未知格式明确报错。
+- **阶段二（32 项）**：CSV 自动识别与负坐标平移、CSV 写回再导入闭环、SINF 头字段与网格、SINF `BCEQU` 良品判定与 `FF/FD/FE/@@/__` 特殊码、SINF 1-based 参考坐标修正与 3-Digit 变体、E142 bin 阵列 + BinCode 表 + TransferMap、投影到 `DieResult.Transfers`、未知格式明确报错。
 
 全部通过。
 
@@ -105,10 +105,10 @@ dotnet run --project E142Transfer.SelfTest/E142Transfer.SelfTest.csproj
 
 不需要改动分析代码，也不需要改动其他 Reader——这正是避免 N×M 转换器的关键。
 
-注意：KLARF 是"缺陷级"数据，含 die 内部坐标（XREL/YREL）和缺陷图像指针。接它时中性模型需要扩一个缺陷位置字段，建议作为 `NeutralDie` 的扩展集合而非污染现有 `BinCode` 语义。
+注意：KLARF 是"缺陷级"数据，含 die 内部坐标（XREL/YREL）和缺陷图像指针。接它时中性模型需要扩一个缺陷位置字段，建议作为 `NeutralDie` 的扩展集合而非污染现有 `BinCode` 语义。格式细节见 [11 KLARF 格式详解](./11-KLARF格式详解.md)。
 
 ## 未覆盖范围
 
 - `MapType=Row/Column` 的 bin 阵列解析（写入 `ImportIssue` 提示）；
-- SINF 方言差异大，接到厂内样本后需校准行序与原点；
+- SINF 已支持 `BCEQU`、hex/3-Digit bin、特殊码与 1-based 参考坐标修正（见 [10 SINF 格式详解](./10-SINF格式详解.md)），但**行序与 flat/notch 方向仍需按厂内样本校准**；
 - GEM 接口传输（E142.2 的 S14F1 消息）属设备通信层，不在本工程范围。

@@ -77,6 +77,7 @@ public sealed class NeutralWaferMap
     public WaferMapFormat Format { get; init; }
     public string SourcePath { get; init; } = string.Empty;
     public string LotId { get; set; } = string.Empty;
+    public string DeviceId { get; set; } = string.Empty;
     public string SubstrateId { get; set; } = string.Empty;
     public SubstrateType SubstrateType { get; set; } = SubstrateType.Wafer;
     public NeutralLayout Layout { get; set; } = new();
