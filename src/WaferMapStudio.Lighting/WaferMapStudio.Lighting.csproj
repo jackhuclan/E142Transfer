@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>WaferMapStudio.Lighting</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    光源控制器的"可复用契约层"：契约、数据模型、参数校验、异常、模拟器。
+    刻意不引用任何厂商 SDK / 串口 / 网口实现 —— 设备侧只依赖 ILightDeviceTransport。
+    真机适配器（串口/网口/USB/PLC 等）在独立项目实现该接口，由宿主注入，
+    从而做到"换光源不改上层"。
+  -->
+
+</Project>

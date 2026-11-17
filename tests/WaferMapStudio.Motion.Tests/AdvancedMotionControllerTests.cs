@@ -119,7 +119,9 @@ public sealed class AdvancedMotionControllerTests
         DataCollectionConfig config = new(
             new[] { MotionAxis.Y }, TimeSpan.FromMilliseconds(5), HistorySource.FeedbackPosition, 16);
         await controller.StartDataCollectionAsync(config);
-        await Task.Delay(30);
+        // 轮询等待首个采样出现，而非固定延时：并行负载下后台采集任务
+        // （Task.Run + PeriodicTimer）可能被延迟调度，固定 30ms 不足以稳定产出样本。
+        await WaitUntilAsync(async () => (await controller.ReadHistoryAsync()).Samples.Count > 0);
         await controller.StopDataCollectionAsync();
         Assert.NotEmpty((await controller.ReadHistoryAsync()).Samples);
 

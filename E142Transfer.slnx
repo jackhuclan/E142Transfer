@@ -16,6 +16,7 @@
     <Project Path="src/E142Transfer/E142Transfer.csproj" />
     <Project Path="src/WaferMapStudio.Core/WaferMapStudio.Core.csproj" />
     <Project Path="src/WaferMapStudio.Motion/WaferMapStudio.Motion.csproj" />
+    <Project Path="src/WaferMapStudio.Lighting/WaferMapStudio.Lighting.csproj" />
     <Project Path="src/WaferMapStudio.ViewModel/WaferMapStudio.ViewModel.csproj" />
     <Project Path="src/WaferMapStudio.Rendering/WaferMapStudio.Rendering.csproj" />
     <Project Path="src/WaferMapStudio.App/WaferMapStudio.App.csproj" />
@@ -25,6 +26,7 @@
     <Project Path="tests/E142Transfer.SelfTest/E142Transfer.SelfTest.csproj" />
     <Project Path="tests/WaferMapStudio.Core.Tests/WaferMapStudio.Core.Tests.csproj" />
     <Project Path="tests/WaferMapStudio.Motion.Tests/WaferMapStudio.Motion.Tests.csproj" />
+    <Project Path="tests/WaferMapStudio.Lighting.Tests/WaferMapStudio.Lighting.Tests.csproj" />
     <Project Path="tests/WaferMapStudio.ViewModel.Tests/WaferMapStudio.ViewModel.Tests.csproj" />
   </Folder>
 
