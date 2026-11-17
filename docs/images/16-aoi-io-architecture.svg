@@ -1,0 +1,38 @@
+<svg viewBox="0 0 680 400" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI','Microsoft YaHei','PingFang SC',sans-serif">
+<title>AOI设备电控分层架构与IO模块定位</title>
+<desc>四层架构：上位机、运动控制器与PLC、IO模块、现场器件，层间指令下行与状态反馈上行</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<rect x="0" y="0" width="680" height="400" fill="#FFFFFF"/>
+<text x="40" y="26" font-size="15" font-weight="500" fill="#2C2C2A">晶圆 AOI 电控分层架构</text>
+
+<rect x="110" y="48" width="460" height="58" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="340" y="70" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#0C447C">上位机（工控机）</text>
+<text x="340" y="89" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#185FA5">检测软件 · 图像算法 · HMI · 流程调度</text>
+
+<path d="M300 108 L300 134" fill="none" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M380 134 L380 108" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="150" y="123" font-size="12" fill="#185FA5">控制指令 ↓</text>
+<text x="420" y="123" font-size="12" fill="#5F5E5A">状态反馈 ↑</text>
+
+<rect x="110" y="136" width="460" height="58" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text x="340" y="158" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#3C3489">运动控制器 / PLC</text>
+<text x="340" y="177" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">运动控制卡 · 位置比较输出 PSO · 逻辑联锁</text>
+
+<path d="M300 196 L300 222" fill="none" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M380 222 L380 196" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<rect x="110" y="224" width="460" height="58" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+<text x="340" y="246" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#085041">IO 模块（分布式从站）</text>
+<text x="340" y="265" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0F6E56">DI/DO · AI/AO · 高速触发 · 光电隔离</text>
+
+<path d="M300 284 L300 310" fill="none" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M380 310 L380 284" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<rect x="110" y="312" width="460" height="64" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="340" y="336" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#444441">现场器件</text>
+<text x="340" y="356" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#5F5E5A">传感器 · 光源 · 相机 · 电磁阀 · 伺服 · 安全回路</text>
+</svg>

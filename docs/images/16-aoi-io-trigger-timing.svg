@@ -1,0 +1,39 @@
+<svg viewBox="0 0 680 430" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI','Microsoft YaHei','PingFang SC',sans-serif">
+<title>AOI飞拍扫描的触发时序与状态反馈</title>
+<desc>编码器计数与位置比较输出触发，触发沿同步光源频闪与相机曝光，曝光完成后回读状态进入下一次循环</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<rect x="0" y="0" width="680" height="430" fill="#FFFFFF"/>
+<text x="40" y="26" font-size="15" font-weight="500" fill="#2C2C2A">飞拍时序：位置 → 触发 → 曝光 → 回读</text>
+
+<text x="40" y="62" font-size="12" font-weight="500" fill="#0C447C">① 编码器 / 位置</text>
+<text x="40" y="78" font-size="12" fill="#5F5E5A">高速计数</text>
+<path d="M190 88 L190 56 L250 56 L250 88 L310 88 L310 56 L370 56 L370 88 L430 88 L430 56 L490 56 L490 88 L550 88 L550 56 L610 56" fill="none" stroke="#185FA5" stroke-width="1.5"/>
+
+<text x="40" y="132" font-size="12" font-weight="500" fill="#993C1D">② 位置比较输出</text>
+<text x="40" y="148" font-size="12" fill="#5F5E5A">PSO 触发沿</text>
+<path d="M190 158 L190 126 L202 126 L202 158 L370 158 L370 126 L382 126 L382 158 L550 158 L550 126 L562 126 L562 158" fill="none" stroke="#993C1D" stroke-width="1.5"/>
+
+<text x="40" y="202" font-size="12" font-weight="500" fill="#854F0B">③ 光源频闪</text>
+<text x="40" y="218" font-size="12" fill="#5F5E5A">strobe</text>
+<path d="M193 228 L193 196 L231 196 L231 228 L373 228 L373 196 L411 196 L411 228 L553 228 L553 196 L591 196 L591 228" fill="none" stroke="#BA7517" stroke-width="1.5"/>
+
+<text x="40" y="272" font-size="12" font-weight="500" fill="#0F6E56">④ 相机曝光</text>
+<text x="40" y="288" font-size="12" fill="#5F5E5A">Exposure</text>
+<path d="M193 298 L193 266 L231 266 L231 298 L373 298 L373 266 L411 266 L411 298 L553 298 L553 266 L591 266 L591 298" fill="none" stroke="#1D9E75" stroke-width="1.5"/>
+
+<text x="40" y="342" font-size="12" font-weight="500" fill="#534AB7">⑤ 状态回读</text>
+<text x="40" y="358" font-size="12" fill="#5F5E5A">Frame Done / 就绪</text>
+<path d="M243 368 L243 336 L255 336 L255 368 L423 368 L423 336 L435 336 L435 368 L603 368 L603 336 L615 336 L615 368" fill="none" stroke="#7F77DD" stroke-width="1.5"/>
+
+<path d="M190 48 L190 372" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="3 3"/>
+<path d="M370 48 L370 372" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="3 3"/>
+<path d="M190 46 L370 46" fill="none" stroke="#5F5E5A" stroke-width="1" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+<text x="280" y="42" text-anchor="middle" font-size="12" fill="#444441">一个触发周期 τ</text>
+
+<path d="M190 404 L630 404" fill="none" stroke="#5F5E5A" stroke-width="1" marker-end="url(#arrow)"/>
+<text x="40" y="408" font-size="12" fill="#5F5E5A">时间 / 扫描方向 →</text>
+</svg>

@@ -1,0 +1,30 @@
+<svg viewBox="0 0 680 300" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI','Microsoft YaHei','PingFang SC',sans-serif">
+<title>光源控制器六步操作流程</title>
+<desc>上电与连接、亮度与通道、触发与定时、参数保存、状态检查、注意事项六个步骤。</desc>
+<rect x="0" y="0" width="680" height="300" fill="#FFFFFF"/>
+<text x="40" y="30" font-size="15" font-weight="500" fill="#2C2C2A">光源控制器六步操作流程</text>
+<rect x="40" y="52" width="190" height="104" rx="12" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="58" y="76" font-size="14" font-weight="500" fill="#185FA5">1 · 上电与连接</text>
+<text x="58" y="100" font-size="12" fill="#5F5E5A">断电接线，核对电压/极性/</text>
+<text x="58" y="120" font-size="12" fill="#5F5E5A">通道，再上电自检。</text>
+<rect x="245" y="52" width="190" height="104" rx="12" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="263" y="76" font-size="14" font-weight="500" fill="#185FA5">2 · 亮度与通道</text>
+<text x="263" y="100" font-size="12" fill="#5F5E5A">选通道，设电流或百分比，</text>
+<text x="263" y="120" font-size="12" fill="#5F5E5A">先低后高试亮。</text>
+<rect x="450" y="52" width="190" height="104" rx="12" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="468" y="76" font-size="14" font-weight="500" fill="#BA7517">3 · 触发与定时</text>
+<text x="468" y="100" font-size="12" fill="#5F5E5A">选触发源，设延时与脉宽，</text>
+<text x="468" y="120" font-size="12" fill="#5F5E5A">对齐曝光窗口。</text>
+<rect x="40" y="172" width="190" height="104" rx="12" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="58" y="196" font-size="14" font-weight="500" fill="#534AB7">4 · 参数保存</text>
+<text x="58" y="220" font-size="12" fill="#5F5E5A">存到非易失区/配方槽，</text>
+<text x="58" y="240" font-size="12" fill="#5F5E5A">重启验证并备份。</text>
+<rect x="245" y="172" width="190" height="104" rx="12" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="263" y="196" font-size="14" font-weight="500" fill="#534AB7">5 · 状态检查</text>
+<text x="263" y="220" font-size="12" fill="#5F5E5A">看指示灯、读电流/报警、</text>
+<text x="263" y="240" font-size="12" fill="#5F5E5A">示波器测波形。</text>
+<rect x="450" y="172" width="190" height="104" rx="12" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="468" y="196" font-size="14" font-weight="500" fill="#993C1D">6 · 注意事项</text>
+<text x="468" y="220" font-size="12" fill="#5F5E5A">防短路、控占空比、匹配电平、</text>
+<text x="468" y="240" font-size="12" fill="#5F5E5A">注意散热。</text>
+</svg>

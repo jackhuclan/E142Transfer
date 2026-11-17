@@ -1,0 +1,46 @@
+<svg viewBox="0 0 680 432" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI','Microsoft YaHei','PingFang SC',sans-serif">
+<title>C# 控制 IO 模块的分层实现路径</title>
+<desc>从业务层到抽象契约、实现、传输驱动、硬件的五层结构，含命令下行与状态上行</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<rect x="0" y="0" width="680" height="432" fill="#FFFFFF"/>
+<text x="40" y="26" font-size="15" font-weight="500" fill="#2C2C2A">C# 控制 IO 的分层实现路径</text>
+
+<rect x="90" y="48" width="500" height="56" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="110" y="70" font-size="14" font-weight="500" fill="#0C447C">业务层 · ViewModel / 扫描流程</text>
+<text x="110" y="89" font-size="12" fill="#185FA5">调用 InitAsync / ReadInputsAsync / WriteOutputAsync / 订阅变化事件</text>
+
+<path d="M300 106 L300 122" fill="none" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M380 122 L380 106" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<rect x="90" y="124" width="500" height="56" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+<text x="110" y="146" font-size="14" font-weight="500" fill="#085041">抽象契约 · IIoController（建议从运动接口中拆出）</text>
+<text x="110" y="165" font-size="12" fill="#0F6E56">强类型点位 IoPoint + IoChanged 事件 + IAsyncDisposable</text>
+
+<path d="M300 182 L300 198" fill="none" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M380 198 L380 182" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<rect x="90" y="200" width="500" height="56" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text x="110" y="222" font-size="14" font-weight="500" fill="#3C3489">实现层 · SimulatedIoController ｜ 真机 IoController</text>
+<text x="110" y="241" font-size="12" fill="#534AB7">测试用位数组 ｜ 真机走 32 位进程外桥接或独立主站库</text>
+
+<path d="M300 258 L300 274" fill="none" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M380 274 L380 258" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<rect x="90" y="276" width="500" height="56" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+<text x="110" y="298" font-size="14" font-weight="500" fill="#633806">传输/驱动 · 命名管道+JSON ｜ EtherCAT / Modbus 主站</text>
+<text x="110" y="317" font-size="12" fill="#854F0B">复用 MotionCommands.ReadInput / WriteOutput，或直连主站</text>
+
+<path d="M300 334 L300 350" fill="none" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M380 350 L380 334" fill="none" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<rect x="90" y="352" width="500" height="60" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="110" y="376" font-size="14" font-weight="500" fill="#444441">硬件 · IO 模块（DI / DO / AI / AO）</text>
+<text x="110" y="396" font-size="12" fill="#5F5E5A">光电/真空/阀/光源/触发；安全联锁走独立硬回路，不在此链路</text>
+
+<text x="470" y="122" font-size="12" fill="#185FA5">指令 ↓</text>
+<text x="470" y="200" font-size="12" fill="#5F5E5A">状态 ↑</text>
+</svg>

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>WaferMapStudio.Motion</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    本层是"运动控制硬件能力"的纯契约层：接口、数据模型、模拟器。
+    刻意不引用 ACS.SPiiPlusNET.dll —— 该 DLL 为 x86/.NET Framework 程序集，
+    直接引用会把主程序锁定为 32 位并在 net10.0 触发 BadImageFormatException。
+    真机实现放在独立的 32 位进程外服务，通过 IMotionController 的 IPC 代理接入。
+  -->
+
+</Project>

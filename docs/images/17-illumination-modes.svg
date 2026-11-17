@@ -1,0 +1,49 @@
+<svg viewBox="0 0 680 290" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI','Microsoft YaHei','PingFang SC',sans-serif">
+<title>明场、暗场与多角度 LED 照明的光路差异</title>
+<desc>明场镜面反射进入镜头，暗场只有缺陷散射光进入镜头，多角度照明按方位角分时切换。</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<rect x="0" y="0" width="680" height="290" fill="#FFFFFF"/>
+<text x="40" y="30" font-size="15" font-weight="500" fill="#2C2C2A">多通道 LED 照明：明场 / 暗场 / 多角度</text>
+<rect x="40" y="48" width="180" height="202" rx="12" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="130" y="70" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#412402">明场</text>
+<text x="130" y="88" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#854F0B">近轴照明，镜面反射</text>
+<rect x="90" y="95" width="80" height="17" rx="3" fill="#E6F1FB" stroke="#378ADD" stroke-width="0.5"/>
+<rect x="84" y="64" width="18" height="10" rx="2" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<line x1="93" y1="74" x2="130" y2="188" stroke="#BA7517" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="130" y1="188" x2="167" y2="74" stroke="#378ADD" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="60" y1="190" x2="200" y2="190" stroke="#5F5E5A" stroke-width="1.5"/>
+<circle cx="130" cy="188" r="3" fill="#D85A30"/>
+<text x="130" y="232" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#5F5E5A">平整区亮，缺陷暗</text>
+<rect x="240" y="48" width="180" height="202" rx="12" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="330" y="70" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#412402">暗场</text>
+<text x="330" y="88" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#854F0B">斜射照明，散射成像</text>
+<rect x="290" y="95" width="80" height="17" rx="3" fill="#E6F1FB" stroke="#378ADD" stroke-width="0.5"/>
+<rect x="253" y="145" width="18" height="10" rx="2" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<line x1="262" y1="155" x2="330" y2="188" stroke="#BA7517" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="330" y1="188" x2="398" y2="155" stroke="#888780" stroke-width="1" stroke-dasharray="4 3"/>
+<line x1="330" y1="188" x2="310" y2="100" stroke="#378ADD" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="330" y1="188" x2="350" y2="100" stroke="#378ADD" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="260" y1="190" x2="400" y2="190" stroke="#5F5E5A" stroke-width="1.5"/>
+<circle cx="330" cy="188" r="3" fill="#D85A30"/>
+<text x="330" y="232" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#5F5E5A">缺陷亮，背景暗</text>
+<rect x="440" y="48" width="180" height="202" rx="12" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="530" y="70" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#412402">多角度</text>
+<text x="530" y="88" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#854F0B">多通道角向选通</text>
+<rect x="490" y="95" width="80" height="17" rx="3" fill="#E6F1FB" stroke="#378ADD" stroke-width="0.5"/>
+<rect x="465" y="115" width="16" height="10" rx="2" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<rect x="485" y="72" width="16" height="10" rx="2" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<rect x="557" y="72" width="16" height="10" rx="2" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<rect x="577" y="115" width="16" height="10" rx="2" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<line x1="481" y1="120" x2="530" y2="188" stroke="#BA7517" stroke-width="1" stroke-dasharray="4 3"/>
+<line x1="493" y1="82" x2="530" y2="188" stroke="#BA7517" stroke-width="1" stroke-dasharray="4 3"/>
+<line x1="565" y1="82" x2="530" y2="188" stroke="#BA7517" stroke-width="1" stroke-dasharray="4 3"/>
+<line x1="577" y1="120" x2="530" y2="188" stroke="#BA7517" stroke-width="1" stroke-dasharray="4 3"/>
+<line x1="530" y1="188" x2="530" y2="100" stroke="#378ADD" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="460" y1="190" x2="600" y2="190" stroke="#5F5E5A" stroke-width="1.5"/>
+<circle cx="530" cy="188" r="3" fill="#D85A30"/>
+<text x="530" y="232" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#5F5E5A">突出不同方向形貌</text>
+</svg>

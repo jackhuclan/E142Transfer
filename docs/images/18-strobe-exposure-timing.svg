@@ -1,0 +1,27 @@
+<svg viewBox="0 0 680 290" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI','Microsoft YaHei','PingFang SC',sans-serif">
+<title>触发、延时、频闪脉宽与相机曝光的时序关系</title>
+<desc>外部触发沿到来后经过延时点亮 LED，脉宽必须覆盖相机曝光窗口，否则采集亮度不一致。</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<rect x="0" y="0" width="680" height="290" fill="#FFFFFF"/>
+<text x="40" y="30" font-size="15" font-weight="500" fill="#2C2C2A">频闪与相机曝光时序：脉宽覆盖曝光窗口</text>
+<line x1="40" y1="60" x2="40" y2="230" stroke="#D3D1C7" stroke-width="0.5"/>
+<line x1="210" y1="50" x2="210" y2="235" stroke="#888780" stroke-width="0.5" stroke-dasharray="4 3"/>
+<line x1="260" y1="50" x2="260" y2="235" stroke="#BA7517" stroke-width="0.5" stroke-dasharray="4 3"/>
+<line x1="350" y1="50" x2="350" y2="235" stroke="#BA7517" stroke-width="0.5" stroke-dasharray="4 3"/>
+<text x="40" y="70" font-size="12" fill="#5F5E5A" dominant-baseline="central">外触发</text>
+<path d="M90 80 H200 V60 H215 V80 H620" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+<text x="40" y="115" font-size="12" fill="#5F5E5A" dominant-baseline="central">延时 t_d</text>
+<rect x="215" y="105" width="45" height="20" fill="#F1EFE8" stroke="#888780" stroke-width="0.5"/>
+<text x="40" y="165" font-size="12" fill="#854F0B" dominant-baseline="central">LED 频闪</text>
+<path d="M90 175 H260 V155 H350 V175 H620" fill="none" stroke="#BA7517" stroke-width="1.5"/>
+<text x="40" y="215" font-size="12" fill="#185FA5" dominant-baseline="central">曝光窗口</text>
+<path d="M90 225 H240 V205 H380 V225 H620" fill="none" stroke="#378ADD" stroke-width="1.5"/>
+<line x1="215" y1="140" x2="260" y2="140" stroke="#5F5E5A" stroke-width="1" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<line x1="260" y1="190" x2="350" y2="190" stroke="#BA7517" stroke-width="1" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<text x="40" y="268" font-size="12" fill="#5F5E5A">脉冲起点 = 触发沿 + 延时；脉宽须完整覆盖曝光窗口，否则亮度不一致或产生拖影。</text>
+<text x="640" y="252" text-anchor="end" font-size="12" fill="#5F5E5A">时间 →</text>
+</svg>

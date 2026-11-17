@@ -1,0 +1,29 @@
+<svg viewBox="0 0 680 350" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI','Microsoft YaHei','PingFang SC',sans-serif">
+<title>轮询与事件触发两种输入采集方式对比</title>
+<desc>左侧轮询方式定时批量读取，右侧事件方式由硬件变化中断上报，底部给出混合推荐</desc>
+<rect x="0" y="0" width="680" height="350" fill="#FFFFFF"/>
+<text x="40" y="26" font-size="15" font-weight="500" fill="#2C2C2A">输入采集：轮询 vs 事件</text>
+
+<rect x="40" y="44" width="280" height="230" rx="12" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="60" y="72" font-size="14" font-weight="500" fill="#0C447C">轮询 Polling</text>
+<text x="60" y="104" font-size="12" fill="#185FA5">· 定时器 10–100 ms 周期</text>
+<text x="60" y="130" font-size="12" fill="#185FA5">· 一次批量读整个字节/字</text>
+<text x="60" y="156" font-size="12" fill="#185FA5">· 与上帧比较得出变化沿</text>
+<text x="60" y="182" font-size="12" fill="#185FA5">· 简单、可预测、不依赖中断</text>
+<text x="60" y="208" font-size="12" fill="#993C1D">延迟 = 周期；空转耗带宽</text>
+<text x="60" y="234" font-size="12" fill="#444441">适用：真空/温度/气压等慢变量</text>
+<text x="60" y="258" font-size="12" fill="#444441">落地：PeriodicTimer + 位图 diff</text>
+
+<rect x="360" y="44" width="280" height="230" rx="12" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="380" y="72" font-size="14" font-weight="500" fill="#085041">事件 Event / 回调</text>
+<text x="380" y="104" font-size="12" fill="#0F6E56">· 订阅 InputChanged 事件</text>
+<text x="380" y="130" font-size="12" fill="#0F6E56">· 硬件 DI 变化即时上报</text>
+<text x="380" y="156" font-size="12" fill="#0F6E56">· 回调只入队，不做耗时逻辑</text>
+<text x="380" y="182" font-size="12" fill="#0F6E56">· 低延迟、不空转</text>
+<text x="380" y="208" font-size="12" fill="#993C1D">依赖硬件支持；需防抖动</text>
+<text x="380" y="234" font-size="12" fill="#444441">适用：到位/触发/急停等快信号</text>
+<text x="380" y="258" font-size="12" fill="#444441">落地：Channel&lt;IoEvent&gt; + 消费者</text>
+
+<rect x="40" y="292" width="600" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="58" y="319" font-size="12" fill="#444441">推荐混合：慢变量轮询 + 快信号事件 + 安全联锁走独立硬件回路（软件只读不控）</text>
+</svg>

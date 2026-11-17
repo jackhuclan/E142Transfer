@@ -1,0 +1,47 @@
+<svg viewBox="0 0 680 468" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI','Microsoft YaHei','PingFang SC',sans-serif">
+<title>AOI设备IO模块控制与监测对象全景</title>
+<desc>六大类对象：传感器状态监测、光源控制、相机触发、运动传送、气路执行器、报警与安全联锁，分属输入与输出</desc>
+<rect x="0" y="0" width="680" height="468" fill="#FFFFFF"/>
+<text x="40" y="26" font-size="15" font-weight="500" fill="#2C2C2A">IO 模块的监测与控制对象</text>
+<text x="40" y="48" font-size="12" fill="#185FA5">输入侧 · 监测（DI / AI / 高速计数）</text>
+<text x="360" y="48" font-size="12" fill="#993C1D">输出侧 · 控制（DO / AO / 高速脉冲）</text>
+
+<rect x="40" y="60" width="280" height="60" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="54" y="82" font-size="13" font-weight="500" fill="#0C447C">1 传感器状态</text>
+<text x="54" y="102" font-size="12" fill="#185FA5">到位/边缘/真空/温湿度/粒子</text>
+
+<rect x="360" y="60" width="280" height="60" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="374" y="82" font-size="13" font-weight="500" fill="#712B13">2 光源控制</text>
+<text x="374" y="102" font-size="12" fill="#993C1D">明/暗场切换 · 亮度 · 频闪使能</text>
+
+<rect x="40" y="132" width="280" height="60" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="54" y="154" font-size="13" font-weight="500" fill="#0C447C">位置/编码器反馈</text>
+<text x="54" y="174" font-size="12" fill="#185FA5">A/B/Z 计数 · 原点 · 限位</text>
+
+<rect x="360" y="132" width="280" height="60" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="374" y="154" font-size="13" font-weight="500" fill="#712B13">3 相机触发</text>
+<text x="374" y="174" font-size="12" fill="#993C1D">行/帧触发 · 曝光脉宽 · 多相机同步</text>
+
+<rect x="40" y="204" width="280" height="60" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="54" y="226" font-size="13" font-weight="500" fill="#0C447C">4 运动/传送反馈</text>
+<text x="54" y="246" font-size="12" fill="#185FA5">伺服就绪 · 到位 · 机械手握手</text>
+
+<rect x="360" y="204" width="280" height="60" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="374" y="226" font-size="13" font-weight="500" fill="#712B13">4 运动/传送控制</text>
+<text x="374" y="246" font-size="12" fill="#993C1D">使能 · 启停 · 传送方向 · 夹持</text>
+
+<rect x="40" y="276" width="280" height="60" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="54" y="298" font-size="13" font-weight="500" fill="#0C447C">6 安全输入</text>
+<text x="54" y="318" font-size="12" fill="#185FA5">急停 · 安全门 · 光幕（双通道）</text>
+
+<rect x="360" y="276" width="280" height="60" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="374" y="298" font-size="13" font-weight="500" fill="#712B13">5 气路执行器</text>
+<text x="374" y="318" font-size="12" fill="#993C1D">真空吸附 · 吹扫 · 气缸 · 气刀</text>
+
+<rect x="360" y="348" width="280" height="60" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="374" y="370" font-size="13" font-weight="500" fill="#712B13">6 报警与联锁输出</text>
+<text x="374" y="390" font-size="12" fill="#993C1D">三色灯 · 蜂鸣器 · 断使能</text>
+
+<rect x="40" y="420" width="600" height="36" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="54" y="444" font-size="12" fill="#444441">硬件安全回路独立于普通 IO：急停/门开关 → 安全继电器 → 直接切断伺服使能与光源，不依赖上位机软件</text>
+</svg>
