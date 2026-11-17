@@ -59,7 +59,7 @@
 
                 <TextBlock Grid.Column="2" Text="已加载" Style="{StaticResource CaptionText}"
                            VerticalAlignment="Center" Margin="0,0,8,0" />
-                <ComboBox Grid.Column="3" Style="{StaticResource DarkComboBox}" MinWidth="220"
+                <ComboBox Grid.Column="3" Style="{StaticResource AppComboBox}" MinWidth="220"
                           ItemsSource="{Binding Browser.Documents}"
                           SelectedItem="{Binding Browser.SelectedDocument}"
                           DisplayMemberPath="FileName" VerticalAlignment="Center" />
@@ -168,10 +168,10 @@
                 <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
                     <Grid>
                         <DataGrid ItemsSource="{Binding Browser.SelectedDocument.DieRows}"
-                                  Style="{StaticResource DarkDataGrid}"
-                                  ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeader}"
-                                  RowStyle="{StaticResource DarkDataGridRow}"
-                                  CellStyle="{StaticResource DarkDataGridCell}"
+                                  Style="{StaticResource AppDataGrid}"
+                                  ColumnHeaderStyle="{StaticResource AppDataGridColumnHeader}"
+                                  RowStyle="{StaticResource AppDataGridRow}"
+                                  CellStyle="{StaticResource AppDataGridCell}"
                                   FrozenColumnCount="2">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Col" Binding="{Binding Col}" />

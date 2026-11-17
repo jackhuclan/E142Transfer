@@ -12,10 +12,10 @@
             <Canvas x:Name="MapCanvas" />
         </Viewbox>
 
-        <!-- 图例浮层（ShowLegend=false 时隐藏） -->
+        <!-- 图例浮层（ShowLegend=false 时隐藏）：亮色半透明白底，叠在地图上仍可读 -->
         <Border x:Name="LegendHost" HorizontalAlignment="Left" VerticalAlignment="Bottom"
                 Margin="16,0,0,16" Padding="10,8" CornerRadius="6"
-                Background="#CC111A2B" BorderBrush="#243553" BorderThickness="1"
+                Background="#E6FFFFFF" BorderBrush="#D8E0EA" BorderThickness="1"
                 MaxHeight="220" Visibility="Collapsed">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsControl x:Name="LegendItems">
@@ -25,11 +25,11 @@
                                 <Rectangle Width="12" Height="12" RadiusX="2" RadiusY="2"
                                            Fill="{Binding Brush}" VerticalAlignment="Center" />
                                 <TextBlock Text="{Binding Label}" Margin="8,0,0,0"
-                                           FontSize="11.5" Foreground="#E6EEFA"
+                                           FontSize="11.5" Foreground="#1F2937"
                                            VerticalAlignment="Center" MaxWidth="220"
                                            TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="{Binding CountText}" Margin="8,0,0,0"
-                                           FontSize="11" Foreground="#9AB0CC"
+                                           FontSize="11" Foreground="#64748B"
                                            VerticalAlignment="Center" />
                             </StackPanel>
                         </DataTemplate>

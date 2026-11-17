@@ -33,7 +33,7 @@ public sealed class LegendItemView
 /// </summary>
 public partial class WaferMapView : UserControl
 {
-    private const string AccentHex = "#3E8BFF";
+    private const string AccentHex = "#2563EB";
 
     /// <summary>单格边长（设备无关像素）。die 间留 1px 间隙便于区分相邻同色格。</summary>
     public static readonly DependencyProperty CellSizeProperty = DependencyProperty.Register(
