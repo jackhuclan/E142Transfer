@@ -1,0 +1,252 @@
+<Window x:Class="WaferMapStudio.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:rendering="clr-namespace:WaferMapStudio.Rendering;assembly=WaferMapStudio.Rendering"
+        Title="WaferMap Studio · 晶圆图查看器"
+        Width="1500" Height="900" MinWidth="1180" MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource WindowBrush}"
+        UseLayoutRounding="True">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ========== 顶栏：产品标识 + 版本 ========== -->
+        <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1"
+                Background="{StaticResource SurfaceBrush}" Padding="16,10">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="30" Height="30" CornerRadius="6" Background="{StaticResource AccentBrush}">
+                        <TextBlock Text="WM" FontSize="11" FontWeight="Bold" Foreground="White"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="WaferMap Studio · 晶圆图查看器" Style="{StaticResource TitleText}" />
+                        <TextBlock Text="E142 · G85 · SINF · CSV／XYBin ／ 多格式解析 · 切换 · 渲染"
+                                   Style="{StaticResource CaptionText}" Margin="0,1,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Version, StringFormat=构建 v{0}}"
+                               Style="{StaticResource CaptionText}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ========== 工具栏：文件选择 + 文档切换 + 状态 ========== -->
+        <Border Grid.Row="1" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1"
+                Background="{StaticResource SurfaceBrush}" Padding="16,9">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="选择文件…" Command="{Binding Browser.OpenFileCommand}"
+                        Style="{StaticResource AccentButton}" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Column="1" Margin="14,0,10,0" VerticalAlignment="Center"
+                           Text="{Binding Browser.StatusText}" Style="{StaticResource MonoText}"
+                           TextTrimming="CharacterEllipsis" />
+
+                <TextBlock Grid.Column="2" Text="已加载" Style="{StaticResource CaptionText}"
+                           VerticalAlignment="Center" Margin="0,0,8,0" />
+                <ComboBox Grid.Column="3" Style="{StaticResource DarkComboBox}" MinWidth="220"
+                          ItemsSource="{Binding Browser.Documents}"
+                          SelectedItem="{Binding Browser.SelectedDocument}"
+                          DisplayMemberPath="FileName" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <!-- ========== 主区：左地图 / 右解析信息 + 明细 ========== -->
+        <Grid Grid.Row="2" Margin="16,14,16,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="400" MinWidth="320" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 左：晶圆图渲染控件（可复用） -->
+            <Border Grid.Column="0" Style="{StaticResource Card}">
+                <Grid>
+                    <rendering:WaferMapView
+                        Map="{Binding Browser.SelectedDocument.Visual}"
+                        Palette="{Binding Browser.SelectedDocument.Palette}"
+                        SelectedDie="{Binding Browser.SelectedDie, Mode=TwoWay}"
+                        CellSize="16" ShowLegend="True" />
+
+                    <!-- 空态提示 -->
+                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{StaticResource TextMutedBrush}" FontSize="13"
+                               Text="点击「选择文件…」加载一份晶圆图（支持 E142 / G85 / SINF / CSV）">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Browser.SelectedDocument}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Border>
+
+            <!-- 右：解析信息 + die 明细表格 -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource Card}" Padding="14,12" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock Text="解析信息" Style="{StaticResource TitleText}" Margin="0,0,0,10" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Key" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="26" />
+                                <RowDefinition Height="26" />
+                                <RowDefinition Height="26" />
+                                <RowDefinition Height="26" />
+                                <RowDefinition Height="26" />
+                                <RowDefinition Height="26" />
+                                <RowDefinition Height="26" />
+                                <RowDefinition Height="26" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="格式" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Browser.SelectedDocument.FormatName}"
+                                       Style="{StaticResource MonoText}" Margin="18,0,0,0" />
+                            <TextBlock Grid.Row="1" Text="读取器" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Browser.SelectedDocument.ReaderName}"
+                                       Style="{StaticResource MonoText}" Margin="18,0,0,0" />
+                            <TextBlock Grid.Row="2" Text="网格" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Browser.SelectedDocument.Grid}"
+                                       Style="{StaticResource MonoText}" Margin="18,0,0,0" />
+                            <TextBlock Grid.Row="3" Text="有效 die / 良品" Style="{StaticResource CaptionText}" />
+                            <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="18,0,0,0">
+                                <TextBlock Text="{Binding Browser.SelectedDocument.DieCount}" Style="{StaticResource MonoText}" />
+                                <TextBlock Text=" / " Style="{StaticResource MonoText}" />
+                                <TextBlock Text="{Binding Browser.SelectedDocument.GoodDieCount}"
+                                           Style="{StaticResource MonoText}" Foreground="{StaticResource OkBrush}" />
+                                <TextBlock Text="  良率 " Style="{StaticResource CaptionText}" Margin="10,0,0,0" />
+                                <TextBlock Text="{Binding Browser.SelectedDocument.YieldText}"
+                                           Style="{StaticResource MonoText}" Foreground="{StaticResource OkBrush}" />
+                            </StackPanel>
+                            <TextBlock Grid.Row="4" Text="类别分布" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Browser.SelectedDocument.CategorySummary}"
+                                       Style="{StaticResource MonoText}" Margin="18,0,0,0" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Row="5" Text="Substrate" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Browser.SelectedDocument.SubstrateId}"
+                                       Style="{StaticResource MonoText}" Margin="18,0,0,0" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Row="6" Text="Device / Lot" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding Browser.SelectedDocument.DeviceId}"
+                                       Style="{StaticResource MonoText}" Margin="18,0,0,0" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Row="7" Text="选中 die" Style="{StaticResource CaptionText}" />
+                            <TextBlock Grid.Row="7" Grid.Column="1"
+                                       Text="{Binding Browser.SelectedDie}"
+                                       Style="{StaticResource MonoText}"
+                                       Margin="18,0,0,0" Foreground="{StaticResource AccentBrush}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
+                    <Grid>
+                        <DataGrid ItemsSource="{Binding Browser.SelectedDocument.DieRows}"
+                                  Style="{StaticResource DarkDataGrid}"
+                                  ColumnHeaderStyle="{StaticResource DarkDataGridColumnHeader}"
+                                  RowStyle="{StaticResource DarkDataGridRow}"
+                                  CellStyle="{StaticResource DarkDataGridCell}"
+                                  FrozenColumnCount="2">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Col" Binding="{Binding Col}" />
+                                <DataGridTextColumn Header="Row" Binding="{Binding Row}" />
+                                <DataGridTextColumn Header="Bin" Binding="{Binding BinCode}" />
+                                <DataGridTextColumn Header="类别" Binding="{Binding Category}" />
+                                <DataGridTextColumn Header="说明" Binding="{Binding Description}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Foreground="{StaticResource TextMutedBrush}" FontSize="12"
+                                   Text="尚未加载文件">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Browser.SelectedDocument}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ========== 底部：解析与运行日志 ========== -->
+        <Border Grid.Row="3" Margin="16,0,16,14" Style="{StaticResource Card}" Padding="0"
+                Height="180">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1"
+                        Padding="14,8" Background="{StaticResource SurfaceAltBrush}">
+                    <TextBlock Text="解析与运行日志" Style="{StaticResource CaptionText}" />
+                </Border>
+
+                <ListBox Grid.Row="1" ItemsSource="{Binding Browser.Logs}"
+                         Background="Transparent" BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         VirtualizingPanel.VirtualizationMode="Recycling">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Time, StringFormat=[{0}]}" FontFamily="Consolas"
+                                           FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="{Binding Level}" FontFamily="Consolas" FontSize="11.5"
+                                           Margin="8,0,0,0" FontWeight="SemiBold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Level}" Value="WARN">
+                                                    <Setter Property="Foreground" Value="{StaticResource WarnBrush}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Level}" Value="ERROR">
+                                                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text="{Binding Message}" FontFamily="Consolas" FontSize="11.5"
+                                           Margin="8,0,0,0" Foreground="{StaticResource TextPrimaryBrush}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

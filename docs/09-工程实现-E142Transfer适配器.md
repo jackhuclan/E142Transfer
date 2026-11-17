@@ -4,8 +4,9 @@
 
 ## 工程概况
 
-- 路径：`C:/Users/Megarobo/WorkBuddy/2026-11-17-09-21-50/E142Transfer/`
-- 技术栈：.NET 10 类库 `E142Transfer` + 自检项目 `E142Transfer.SelfTest` + `.sln`
+- 路径：本仓库根（分层见 `AGENTS.md`；解析库位于 `src/E142Transfer/`）
+- 技术栈：.NET 10 解析类库 `E142Transfer` + 自检程序 `tests/E142Transfer.SelfTest`
+  + WaferMapStudio WPF 查看器（`src/WaferMapStudio.*`）+ `E142Transfer.slnx`
 - 目标：为 PL 检测上位机提供"多格式导入 → 中性模型 → 三映射判定 → E142 跨站追溯"的完整链路
 
 ## 两阶段交付
@@ -27,7 +28,7 @@
 按 Artwork 的中性结构思路实现：**多格式 Reader → NeutralWaferMap → 分析 / 写出**。
 
 ```
-E142Transfer/Import/
+src/E142Transfer/Import/
 ├─ Abstractions/
 │   └─ IWaferMapAdapter.cs      # WaferMapFormat / FormatProbe / Reader/Writer 接口
 ├─ Model/

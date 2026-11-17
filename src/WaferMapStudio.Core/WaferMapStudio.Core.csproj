@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>WaferMapStudio.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 格式解析（E142/G85/SINF/CSV → NeutralWaferMap）由本仓库解析库提供；
+         本仓库只有 Core 允许引用它，ViewModel/Rendering/App 一律经由 Core 的视觉契约。 -->
+    <ProjectReference Include="..\E142Transfer\E142Transfer.csproj" />
+  </ItemGroup>
+
+</Project>
