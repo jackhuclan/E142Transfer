@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WaferMapStudio.Core\WaferMapStudio.Core.csproj" />
+    <ProjectReference Include="..\WaferMapStudio.Motion\WaferMapStudio.Motion.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,178 @@
+<UserControl x:Class="WaferMapStudio.App.Views.InterpolationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--
+      插补算法演示页：左列参数与执行，右列轨迹预览与采样明细。
+      算法在 WaferMapStudio.Motion.Interpolation，本页只负责输入、预览与状态展示。
+    -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="330" MinWidth="290" />
+            <ColumnDefinition Width="14" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ========== 左：参数输入 + 执行 + 状态 + 分段限速 ========== -->
+        <Border Grid.Column="0" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="插补参数" Style="{StaticResource TitleText}" Margin="0,0,0,10" />
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="34" />
+                        <RowDefinition Height="34" />
+                        <RowDefinition Height="34" />
+                        <RowDefinition Height="34" />
+                        <RowDefinition Height="34" />
+                        <RowDefinition Height="34" />
+                        <RowDefinition Height="34" />
+                        <RowDefinition Height="34" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="预设轨迹" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1" Style="{StaticResource AppComboBox}"
+                              ItemsSource="{Binding PresetOptions}" SelectedIndex="{Binding SelectedPresetIndex}" />
+
+                    <TextBlock Grid.Row="1" Text="时间律曲线" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                    <ComboBox Grid.Row="1" Grid.Column="1" Style="{StaticResource AppComboBox}"
+                              ItemsSource="{Binding CurveOptions}" SelectedIndex="{Binding SelectedCurveIndex}" />
+
+                    <TextBlock Grid.Row="2" Text="进给速度 F" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource FieldBox}"
+                             Margin="10,0,0,0" Text="{Binding FeedRateText}" />
+                    <TextBlock Grid.Row="3" Text="加速度 A" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource FieldBox}"
+                             Margin="10,0,0,0" Text="{Binding AccelText}" />
+                    <TextBlock Grid.Row="4" Text="加加速度 J" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource FieldBox}"
+                             Margin="10,0,0,0" Text="{Binding JerkText}" />
+                    <TextBlock Grid.Row="5" Text="插补周期 (ms)" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="5" Grid.Column="1" Style="{StaticResource FieldBox}"
+                             Margin="10,0,0,0" Text="{Binding PeriodText}" />
+                    <TextBlock Grid.Row="6" Text="弦高误差 (mm)" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="6" Grid.Column="1" Style="{StaticResource FieldBox}"
+                             Margin="10,0,0,0" Text="{Binding ChordTolText}" />
+                    <TextBlock Grid.Row="7" Text="前瞻段数" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="7" Grid.Column="1" Style="{StaticResource FieldBox}"
+                             Margin="10,0,0,0" Text="{Binding LookaheadText}" />
+                </Grid>
+
+                <Button Grid.Row="2" Content="执行插补" Style="{StaticResource AccentButton}"
+                        Command="{Binding ExecuteCommand}" HorizontalAlignment="Left"
+                        MinWidth="110" Margin="0,12,0,0" />
+
+                <!-- 状态提示条：成功绿色 / 出错红色 -->
+                <Border Grid.Row="3" Background="{StaticResource SurfaceAltBrush}" CornerRadius="4"
+                        Padding="10,7" Margin="0,12,0,0">
+                    <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                <Setter Property="Foreground" Value="{StaticResource OkBrush}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding StatusIsError}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Border>
+
+                <StackPanel Grid.Row="4" Margin="0,14,0,0">
+                    <TextBlock Text="分段限速（前瞻规划结果）" Style="{StaticResource CaptionText}" Margin="0,0,0,8" />
+                    <DataGrid ItemsSource="{Binding SegmentRows}" Style="{StaticResource AppDataGrid}"
+                              ColumnHeaderStyle="{StaticResource AppDataGridColumnHeader}"
+                              RowStyle="{StaticResource AppDataGridRow}"
+                              CellStyle="{StaticResource AppDataGridCell}"
+                              MinHeight="80">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="段" Binding="{Binding Name}" />
+                            <DataGridTextColumn Header="长度 (mm)" Binding="{Binding LengthMm, StringFormat=F2}" />
+                            <DataGridTextColumn Header="入段 (mm/s)" Binding="{Binding EntrySpeed, StringFormat=F2}" />
+                            <DataGridTextColumn Header="出段 (mm/s)" Binding="{Binding ExitSpeed, StringFormat=F2}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ========== 右：轨迹预览 + 采样明细 ========== -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="14" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="轨迹预览（XY 平面）" Style="{StaticResource TitleText}" />
+                        <TextBlock Grid.Column="1" Text="{Binding SummaryText}" Style="{StaticResource MonoText}"
+                                   Margin="16,2,8,0" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="闭环跟随误差" Style="{StaticResource CaptionText}" Margin="0,0,8,0" />
+                            <TextBlock Text="{Binding FollowErrorText}" Style="{StaticResource MonoText}"
+                                       Foreground="{StaticResource AccentBrush}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Row="1" Background="{StaticResource SurfaceAltBrush}"
+                            CornerRadius="4" Margin="0,10,0,0" ClipToBounds="True">
+                        <Canvas x:Name="PreviewCanvas" Margin="12" ClipToBounds="True" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1"
+                            Padding="14,8" Background="{StaticResource SurfaceAltBrush}">
+                        <TextBlock Text="插补指令采样（均匀抽取，末行为终点）" Style="{StaticResource CaptionText}" />
+                    </Border>
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding SampleRows}" Style="{StaticResource AppDataGrid}"
+                              ColumnHeaderStyle="{StaticResource AppDataGridColumnHeader}"
+                              RowStyle="{StaticResource AppDataGridRow}"
+                              CellStyle="{StaticResource AppDataGridCell}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="t (ms)" Binding="{Binding TimeMs, StringFormat=F1}" />
+                            <DataGridTextColumn Header="X (mm)" Binding="{Binding Xm, StringFormat=F3}" />
+                            <DataGridTextColumn Header="Y (mm)" Binding="{Binding Ym, StringFormat=F3}" />
+                            <DataGridTextColumn Header="Z (mm)" Binding="{Binding Zm, StringFormat=F3}" />
+                            <DataGridTextColumn Header="速度 (mm/s)" Binding="{Binding Speed, StringFormat=F2}" />
+                            <DataGridTextColumn Header="加速度 (mm/s²)" Binding="{Binding Accel, StringFormat=F1}" />
+                            <DataGridTextColumn Header="X 脉冲" Binding="{Binding XPulse}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

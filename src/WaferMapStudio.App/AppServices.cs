@@ -22,6 +22,7 @@ public static class AppServices
         services.AddSingleton<IFileDialogService, FileDialogService>();
 
         services.AddSingleton<WaferMapBrowserViewModel>();
+        services.AddSingleton<InterpolationViewModel>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();
 

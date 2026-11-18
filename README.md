@@ -28,12 +28,16 @@
   上游未给步距（CSV 等）时退化为正方形格子；
 - 图上交互：滚轮缩放（以鼠标位置为中心，1.0 适应视口，上限 8×，换文件自动复位），
   放大后中键/右键拖动平移（左键始终用于点选 die）；
+- 顶部功能导航：**图谱解析 / 插补算法** 双页切换（工具栏随页显隐，图谱解析功能不受影响）。
+  插补页支持预设轨迹与 F/A/J、插补周期、弦高误差、前瞻段数参数输入，
+  展示分段限速表、插补指令采样明细、轨迹预览（起点/终点标记）与三环 PID 闭环跟随误差统计；
+  参数非法时给出可读错误提示，不中断程序；
 
 ## 构建 / 运行 / 测试
 
 ```bash
 dotnet build E142Transfer.slnx -c Release          # 0 警告 0 错误
-dotnet test E142Transfer.slnx                       # xunit（Core/ViewModel，59 项）
+dotnet test E142Transfer.slnx                       # xunit（5 个测试工程，121 项）
 dotnet run --project tests/E142Transfer.SelfTest    # 解析库自检（99 项 OK）
 dotnet run --project src/WaferMapStudio.App         # 启动查看器
 dotnet run --project tools/E142Transfer.RealSampleCheck -- <wafer-map 文件路径>
@@ -46,17 +50,20 @@ dotnet run --project tools/E142Transfer.RealSampleCheck -- <wafer-map 文件路�
 ```
 src/E142Transfer/                 解析库（Reader/Writer → NeutralWaferMap）
 src/WaferMapStudio.Core/          视觉契约 + 映射器 + BinCode 调色板
-src/WaferMapStudio.ViewModel/     浏览器/文档 VM、IFileDialogService 接口
+src/WaferMapStudio.Motion/        运动控制契约层 + 插补算法库（Interpolation）
+src/WaferMapStudio.ViewModel/     浏览器/文档 VM、插补演示 VM、IFileDialogService 接口
 src/WaferMapStudio.Rendering/     WaferMapView 可复用控件
 src/WaferMapStudio.App/           WPF 主程序、Host+DI、亮色主题（Themes/Light.xaml）
 tests/E142Transfer.SelfTest/      解析库自检程序（99 项）
 tests/WaferMapStudio.*.Tests/     xunit 单测
-tools/E142Transfer.RealSampleCheck/  真实样本端到端验收工具
+tools/E142Transfer.RealSampleCheck/      真实样本端到端验收工具
+tools/E142Transfer.MotionControlDemo/    插补 + PID 算法控制台示例
 assets/sample-maps/               示例晶圆图
 docs/                             领域知识库（点墨 → bin → E142 → 格式详解 → 工程实现）
 ```
 
-依赖方向（单向）：`App ─► Rendering ─► Core ─► E142Transfer`，`App ─► ViewModel ─► Core`。
+依赖方向（单向）：`App ─► Rendering ─► Core ─► E142Transfer`，
+`App ─► ViewModel ─► Core`，`ViewModel ─► Motion（含插补算法库）`。
 
 ## 解析库 Schema 依据（SEMI E142）
 
@@ -97,4 +104,4 @@ MapData
 
 ## 版本
 
-单点维护于 [Directory.Build.props](./Directory.Build.props)（当前 0.2.0）。
+单点维护于 [Directory.Build.props](./Directory.Build.props)（当前 0.3.0）。
