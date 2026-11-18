@@ -15,31 +15,41 @@
         <!-- ========== 左：参数输入 + 执行 + 状态 + 分段限速 ========== -->
         <Border Grid.Column="0" Style="{StaticResource Card}">
             <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="插补参数" Style="{StaticResource TitleText}" Margin="0,0,0,10" />
+
+            <!-- 典型工业场景：选择后自动套用整套参数并执行插补 -->
+            <StackPanel Grid.Row="1" Margin="0,0,0,10">
+                <TextBlock Text="典型工业场景" Style="{StaticResource CaptionText}" Margin="0,0,0,6" />
+                <ComboBox Style="{StaticResource AppComboBox}"
+                          ItemsSource="{Binding ScenarioOptions}"
+                          SelectedIndex="{Binding SelectedScenarioIndex}"
+                          ToolTip="选择场景后自动切换对应的插补算法参数配置（轨迹预设、时间律曲线、F/A/J、周期、弦高、前瞻）并立即执行" />
+            </StackPanel>
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="110" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
+                    <RowDefinition Height="34" />
+                    <RowDefinition Height="34" />
+                    <RowDefinition Height="34" />
+                    <RowDefinition Height="34" />
+                    <RowDefinition Height="34" />
+                    <RowDefinition Height="34" />
+                    <RowDefinition Height="34" />
+                    <RowDefinition Height="34" />
                 </Grid.RowDefinitions>
-
-                <TextBlock Text="插补参数" Style="{StaticResource TitleText}" Margin="0,0,0,10" />
-
-                <Grid Grid.Row="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="110" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="34" />
-                        <RowDefinition Height="34" />
-                        <RowDefinition Height="34" />
-                        <RowDefinition Height="34" />
-                        <RowDefinition Height="34" />
-                        <RowDefinition Height="34" />
-                        <RowDefinition Height="34" />
-                        <RowDefinition Height="34" />
-                    </Grid.RowDefinitions>
 
                     <TextBlock Text="预设轨迹" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
                     <ComboBox Grid.Column="1" Style="{StaticResource AppComboBox}"
@@ -69,12 +79,12 @@
                              Margin="10,0,0,0" Text="{Binding LookaheadText}" />
                 </Grid>
 
-                <Button Grid.Row="2" Content="执行插补" Style="{StaticResource AccentButton}"
+                <Button Grid.Row="3" Content="执行插补" Style="{StaticResource AccentButton}"
                         Command="{Binding ExecuteCommand}" HorizontalAlignment="Left"
                         MinWidth="110" Margin="0,12,0,0" />
 
                 <!-- 状态提示条：成功绿色 / 出错红色 -->
-                <Border Grid.Row="3" Background="{StaticResource SurfaceAltBrush}" CornerRadius="4"
+                <Border Grid.Row="4" Background="{StaticResource SurfaceAltBrush}" CornerRadius="4"
                         Padding="10,7" Margin="0,12,0,0">
                     <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap">
                         <TextBlock.Style>
@@ -90,7 +100,7 @@
                     </TextBlock>
                 </Border>
 
-                <StackPanel Grid.Row="4" Margin="0,14,0,0">
+                <StackPanel Grid.Row="5" Margin="0,14,0,0">
                     <TextBlock Text="分段限速（前瞻规划结果）" Style="{StaticResource CaptionText}" Margin="0,0,0,8" />
                     <DataGrid ItemsSource="{Binding SegmentRows}" Style="{StaticResource AppDataGrid}"
                               ColumnHeaderStyle="{StaticResource AppDataGridColumnHeader}"

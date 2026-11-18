@@ -34,8 +34,15 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- 功能下拉菜单：图谱解析 / 插补算法（与主区内容切换、工具栏显隐共用同一状态） -->
+                    <TextBlock Text="功能" Style="{StaticResource CaptionText}"
+                               VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox Style="{StaticResource AppComboBox}" MinWidth="130" Margin="0,0,16,0"
+                              ItemsSource="{Binding FeatureOptions}"
+                              SelectedIndex="{Binding ActiveFeatureIndex, Mode=TwoWay}"
+                              ToolTip="切换主界面功能：图谱解析 / 插补算法" />
                     <TextBlock Text="{Binding Version, StringFormat=构建 v{0}}"
-                               Style="{StaticResource CaptionText}" />
+                               Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -108,14 +115,21 @@
             </Grid>
         </Border>
 
-        <!-- ========== 主区：顶部功能导航（图谱解析 / 插补算法） ========== -->
-        <TabControl Grid.Row="2" Style="{StaticResource NavTabControl}"
-                    SelectedIndex="{Binding ActiveFeatureIndex}">
+        <!-- ========== 主区：按「功能」下拉菜单切换（0 图谱解析 / 1 插补算法） ========== -->
+        <Grid Grid.Row="2">
 
             <!-- 页 1：图谱解析（原有功能，布局保持不变） -->
-            <TabItem Header="图谱解析">
-        <Grid Margin="16,14,16,10">
-            <Grid.ColumnDefinitions>
+            <Grid Margin="16,14,16,10">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ActiveFeatureIndex}" Value="1">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="400" MinWidth="320" />
@@ -269,13 +283,21 @@
                 </Border>
             </Grid>
             </Grid>
-            </TabItem>
 
             <!-- 页 2：插补算法演示 -->
-            <TabItem Header="插补算法">
-                <views:InterpolationView DataContext="{Binding Interpolation}" Margin="0,14,0,10" />
-            </TabItem>
-        </TabControl>
+            <views:InterpolationView DataContext="{Binding Interpolation}" Margin="0,14,0,10">
+                <views:InterpolationView.Style>
+                    <Style TargetType="UserControl">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ActiveFeatureIndex}" Value="1">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </views:InterpolationView.Style>
+            </views:InterpolationView>
+        </Grid>
 
         <!-- ========== 底部：解析与运行日志 ========== -->
         <Border Grid.Row="3" Margin="16,0,16,14" Style="{StaticResource Card}" Padding="0"

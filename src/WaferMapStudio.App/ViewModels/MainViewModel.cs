@@ -21,9 +21,12 @@ public sealed partial class MainViewModel : ObservableObject
     /// <summary>插补算法演示页（参数输入 / 执行 / 结果预览）。</summary>
     public InterpolationViewModel Interpolation { get; }
 
+    /// <summary>主界面「功能」下拉菜单选项：0 = 图谱解析，1 = 插补算法。</summary>
+    public IReadOnlyList<string> FeatureOptions { get; } = ["图谱解析", "插补算法"];
+
     /// <summary>
-    /// 顶部功能导航选中项：0 = 图谱解析，1 = 插补算法。
-    /// 工具栏等页级附属 UI 依据该值显隐。
+    /// 当前功能选中项：0 = 图谱解析，1 = 插补算法。
+    /// 顶栏下拉菜单与主区内容切换、工具栏显隐均依据该值。
     /// </summary>
     [ObservableProperty]
     private int activeFeatureIndex;

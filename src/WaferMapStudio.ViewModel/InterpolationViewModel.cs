@@ -19,6 +19,18 @@ public enum InterpPreset
     HelixSpline
 }
 
+/// <summary>典型工业场景：一个场景对应一套完整参数配置（顺序对应下拉框选项 1..N）。</summary>
+public sealed record IndustryScenario(
+    string Name,
+    int PresetIndex,
+    int CurveIndex,
+    double Feed,
+    double Accel,
+    double Jerk,
+    double PeriodMs,
+    double ChordTolMm,
+    int Lookahead);
+
 /// <summary>分段限速表的一行。</summary>
 public sealed record SegmentSpeedRow(string Name, double LengthMm, double EntrySpeed, double ExitSpeed);
 
@@ -43,7 +55,35 @@ public sealed partial class InterpolationViewModel : ObservableObject
 
     public IReadOnlyList<string> CurveOptions { get; } = ["梯形曲线", "七段 S 曲线"];
 
+    /// <summary>典型工业场景下拉框选项；索引 0 为自定义（不套用预设），其余与 <see cref="Scenarios"/> 一一对应。</summary>
+    public IReadOnlyList<string> ScenarioOptions { get; } =
+    [
+        "自定义（手动输入参数）",
+        "CNC 模具曲面高速铣削",
+        "半导体贴片机取放",
+        "激光切割轮廓跟踪",
+        "晶圆检测线扫平台",
+        "多轴点胶 / 焊线"
+    ];
+
+    /// <summary>场景参数表（与前文工业场景说明一一对应，下标 = ScenarioOptions 索引 − 1）。</summary>
+    private static readonly IndustryScenario[] Scenarios =
+    [
+        // 预设轨迹 / 曲线 / F / A / J / 周期ms / 弦高mm / 前瞻
+        new("CNC 模具曲面高速铣削", (int)InterpPreset.HelixSpline, 1,
+            Feed: 200, Accel: 300, Jerk: 2000, PeriodMs: 2, ChordTolMm: 0.01, Lookahead: 4),
+        new("半导体贴片机取放", (int)InterpPreset.SingleLine, 1,
+            Feed: 300, Accel: 1500, Jerk: 20000, PeriodMs: 1, ChordTolMm: 0.02, Lookahead: 2),
+        new("激光切割轮廓跟踪", (int)InterpPreset.LineArcLine, 1,
+            Feed: 80, Accel: 400, Jerk: 4000, PeriodMs: 2, ChordTolMm: 0.005, Lookahead: 6),
+        new("晶圆检测线扫平台", (int)InterpPreset.HelixSpline, 1,
+            Feed: 50, Accel: 200, Jerk: 1000, PeriodMs: 2, ChordTolMm: 0.01, Lookahead: 3),
+        new("多轴点胶 / 焊线", (int)InterpPreset.LineArcLine, 1,
+            Feed: 120, Accel: 600, Jerk: 6000, PeriodMs: 1, ChordTolMm: 0.02, Lookahead: 4)
+    ];
+
     // ---------- 参数输入（文本框直接绑定字符串，执行时统一解析校验） ----------
+    [ObservableProperty] private int selectedScenarioIndex;
     [ObservableProperty] private int selectedPresetIndex;
     [ObservableProperty] private int selectedCurveIndex = 1;
     [ObservableProperty] private string feedRateText = "100";
@@ -71,6 +111,31 @@ public sealed partial class InterpolationViewModel : ObservableObject
     public RelayCommand ExecuteCommand { get; }
 
     public InterpolationViewModel() => ExecuteCommand = new RelayCommand(Execute);
+
+    /// <summary>
+    /// 选择典型工业场景：自动套用该场景的轨迹预设、时间律曲线与全部参数，
+    /// 并立即执行插补，同步刷新分段限速表、轨迹预览与闭环跟随误差。
+    /// 索引 0 为「自定义」，不套用任何预设（保留用户手动输入）。
+    /// </summary>
+    partial void OnSelectedScenarioIndexChanged(int value)
+    {
+        if (value <= 0 || value > Scenarios.Length)
+            return;
+
+        IndustryScenario s = Scenarios[value - 1];
+        SelectedPresetIndex = s.PresetIndex;
+        SelectedCurveIndex = s.CurveIndex;
+        FeedRateText = s.Feed.ToString(CultureInfo.InvariantCulture);
+        AccelText = s.Accel.ToString(CultureInfo.InvariantCulture);
+        JerkText = s.Jerk.ToString(CultureInfo.InvariantCulture);
+        PeriodText = s.PeriodMs.ToString(CultureInfo.InvariantCulture);
+        ChordTolText = s.ChordTolMm.ToString(CultureInfo.InvariantCulture);
+        LookaheadText = s.Lookahead.ToString(CultureInfo.InvariantCulture);
+
+        Execute();
+        if (!StatusIsError)
+            StatusText = $"已套用场景「{s.Name}」（F={s.Feed} A={s.Accel} J={s.Jerk} T={s.PeriodMs}ms 弦高={s.ChordTolMm}mm 前瞻={s.Lookahead}）；{StatusText}";
+    }
 
     private void Execute()
     {
