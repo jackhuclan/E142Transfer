@@ -34,3 +34,5 @@ artifacts/
 .DS_Store
 Thumbs.db
 desktop.ini
+/web-clip
+/.workbuddy/memory
