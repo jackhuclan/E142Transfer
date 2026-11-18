@@ -284,10 +284,14 @@
             </Grid>
             </Grid>
 
-            <!-- 页 2：插补算法演示 -->
-            <views:InterpolationView DataContext="{Binding Interpolation}" Margin="0,14,0,10">
-                <views:InterpolationView.Style>
-                    <Style TargetType="UserControl">
+            <!-- 页 2：插补算法演示。
+                 显隐触发器必须挂在外层 Grid（DataContext = MainViewModel）：
+                 InterpolationView 自身设置了 DataContext={Binding Interpolation}，
+                 若把 Style 直接挂在它上面，{Binding ActiveFeatureIndex} 会在
+                 InterpolationViewModel 上找不到属性，触发器永不生效，页面一直 Collapsed。 -->
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding ActiveFeatureIndex}" Value="1">
@@ -295,8 +299,9 @@
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </views:InterpolationView.Style>
-            </views:InterpolationView>
+                </Grid.Style>
+                <views:InterpolationView DataContext="{Binding Interpolation}" Margin="0,14,0,10" />
+            </Grid>
         </Grid>
 
         <!-- ========== 底部：解析与运行日志 ========== -->
